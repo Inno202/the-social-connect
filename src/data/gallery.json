@@ -1,0 +1,11 @@
+[
+  { "id": "g-2024-weekend", "src": "/posters/msb-weekend-2024", "alt": "MSB Weekend 2024 poster with the Spring Blow, Soulful Blow, Spin Blow and Comedy Night logos", "group": "MSB Weekend", "year": 2024, "order": 1 },
+  { "id": "g-2026-calendar", "src": "/posters/calendar-2026", "alt": "MSB calendar 2026 poster: save the dates", "group": "MSB calendar", "year": 2026, "order": 1 },
+  { "id": "g-2026-funwalk", "src": "/posters/fun-walk-2026", "alt": "MSB Fun Walk and Family Day 2026 poster", "group": "MSB Fun Walk", "year": 2026, "order": 1 },
+  { "id": "g-2026-act-bj", "src": "/posters/activation-boitumelo-2026", "alt": "Spring Blow 2026 activation poster, Boitumelo Junction", "group": "Spring Blow", "year": 2026, "order": 1 },
+  { "id": "g-2026-act-1st", "src": "/posters/activation-1st-location-2026", "alt": "Spring Blow 2026 activation poster, 1st Location Lifestyle", "group": "Spring Blow", "year": 2026, "order": 2 },
+  { "id": "g-2026-spring", "src": "/posters/spring-blow-2026", "alt": "Matjhabeng Spring Blow 2026 line-up poster", "group": "Spring Blow", "year": 2026, "order": 3 },
+  { "id": "g-2026-soulful", "src": "/posters/soulful-blow-sep-2026", "alt": "Matjhabeng Soulful Blow 2026 line-up poster", "group": "Soulful Blow", "year": 2026, "order": 1 },
+  { "id": "g-2026-soulful-dec-early", "src": "/posters/soulful-blow-dec-2026-earlybird", "alt": "Soulful Blow 27 December poster: earlybird 50 percent sold", "group": "Soulful Blow", "year": 2026, "order": 2 },
+  { "id": "g-2026-soulful-dec-vip", "src": "/posters/soulful-blow-dec-2026", "alt": "Soulful Blow 27 December VIP tables poster", "group": "Soulful Blow", "year": 2026, "order": 3 }
+]

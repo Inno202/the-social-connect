@@ -1,0 +1,51 @@
+{
+  "name": "msb-events",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:emu": "VITE_USE_EMULATORS=true vite",
+    "emulators": "firebase emulators:start --only firestore,auth --project demo-msb-events",
+    "seed": "node scripts/seed.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-msb-events \"vitest run --config vitest.rules.config.ts\"",
+    "test:e2e": "firebase emulators:exec --only firestore,auth --project demo-msb-events \"node scripts/seed.mjs --demo && playwright test --trace off\"",
+    "build": "tsc --noEmit -p . && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0",
+    "jspdf": "^4.2.1",
+    "jsqr": "^1.4.0",
+    "lucide-react": "^1.79.0",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.18.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.1",
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^6.3.0",
+    "firebase-admin": "^14.5.1",
+    "firebase-tools": "^15.37.0",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.1"
+  },
+  "overrides": {
+    "@firebase/app-compat": "0.5.18",
+    "@firebase/app": "0.16.2",
+    "@grpc/grpc-js": "^1.14.7"
+  }
+}

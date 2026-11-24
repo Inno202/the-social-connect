@@ -1,0 +1,58 @@
+import { useMemo, useState } from 'react';
+import { Expand } from 'lucide-react';
+import { PageHero } from '../components/Layout';
+import { PhotoViewer } from '../components/PhotoViewer';
+import { useGallery, posterSrc } from '../lib/data';
+import { useTitle } from '../lib/useTitle';
+
+export default function Gallery() {
+  useTitle('Gallery');
+  const items = useGallery();
+  const [open, setOpen] = useState<number | null>(null);
+
+  // Grouped by year (newest first), then by event.
+  const { groups, flat } = useMemo(() => {
+    const sorted = [...(items ?? [])].sort((a, b) => b.year - a.year || a.group.localeCompare(b.group) || a.order - b.order);
+    const groups: { key: string; year: number; group: string; idx: number[] }[] = [];
+    sorted.forEach((g, i) => {
+      const key = `${g.year}-${g.group}`;
+      let grp = groups.find((x) => x.key === key);
+      if (!grp) groups.push((grp = { key, year: g.year, group: g.group, idx: [] }));
+      grp.idx.push(i);
+    });
+    return { groups, flat: sorted };
+  }, [items]);
+  const photos = flat.map((g) => ({ src: posterSrc(g.src, 'lg'), alt: g.alt, caption: `${g.group} ${g.year}: ${g.alt}` }));
+
+  return (
+    <>
+      <PageHero title="Gallery" />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-14">
+        {!items && (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" aria-hidden>
+            {Array.from({ length: 8 }, (_, n) => <div key={n} className="aspect-square rounded-3xl bg-mist animate-pulse" />)}
+          </div>
+        )}
+        {items && items.length === 0 && <p className="text-ink-soft">Photos from our events will appear here.</p>}
+        {groups.map((g) => (
+          <section key={g.key} aria-labelledby={`g-${g.key}`}>
+            <h2 id={`g-${g.key}`} className="display text-4xl sm:text-5xl mb-5">
+              {g.group} <span className="text-leaf num">{g.year}</span>
+            </h2>
+            <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {g.idx.map((i) => (
+                <li key={flat[i].id}>
+                  <button type="button" onClick={() => setOpen(i)} className="zoomable group frame aspect-square block w-full relative" aria-label={`Open photo: ${flat[i].alt}`}>
+                    <img src={posterSrc(flat[i].src, 'sm')} alt={flat[i].alt} loading="lazy" className="photo-zoom w-full h-full object-cover" />
+                    <span className="zoom-hint absolute top-2 right-2 icon-btn bg-ink/70 text-white" aria-hidden><Expand className="size-4" /></span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+      {open !== null && photos[open] && <PhotoViewer photos={photos} index={open} onIndex={setOpen} onClose={() => setOpen(null)} />}
+    </>
+  );
+}

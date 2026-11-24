@@ -1,0 +1,238 @@
+rules_version = '2';
+
+// MSB Events. The browser is never trusted: prices, counts, roles and scans are all checked here.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function orderDoc(id) { return /databases/$(database)/documents/orders/$(id); }
+    function eventDoc(id) { return /databases/$(database)/documents/events/$(id); }
+    function holdingDoc(id) { return /databases/$(database)/documents/holdings/$(id); }
+    function userPath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasRole(roles) {
+      return signedIn() && exists(userPath())
+        && get(userPath()).data.active == true
+        && get(userPath()).data.role in roles;
+    }
+    function eventStaff() { return hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER']); }
+    function doorStaff() { return hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'TICKET_SCANNER']); }
+    function recentLogin() {
+      return request.auth.token.auth_time is int
+        && timestamp.value(request.auth.token.auth_time * 1000) > request.time - duration.value(8, 'h');
+    }
+    function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function strList(v, maxItems) { return v is list && v.size() <= maxItems; }
+    function imageRef(v) {
+      return v is string && (v == '' || v.matches('^https://res[.]cloudinary[.]com/[A-Za-z0-9_./,-]+$') || v.matches('^/posters/[a-z0-9-]+$'));
+    }
+
+    // ---------- Users ----------
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || hasRole(['SUPER_ADMIN', 'ADMIN']));
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'active', 'createdAt'])
+        && str(request.resource.data.name, 1, 80)
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.role == 'USER'
+        && request.resource.data.active == true
+        && request.resource.data.createdAt == request.time;
+      allow update: if (
+          signedIn() && request.auth.uid == uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
+          && str(request.resource.data.name, 1, 80)
+        ) || (
+          hasRole(['SUPER_ADMIN']) && recentLogin() && request.auth.uid != uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'active'])
+          && request.resource.data.role in ['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE', 'TICKET_SCANNER', 'USER']
+          && request.resource.data.active is bool
+        );
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // ---------- Events and ticket types ----------
+    function validEvent(d) {
+      return d.keys().hasOnly(['title', 'shortTitle', 'category', 'startsAt', 'endsAt', 'gatesOpen', 'timeTbc', 'venue', 'address', 'town',
+          'mapQuery', 'poster', 'posterColor', 'is18Plus', 'description', 'houseRules', 'amenities', 'refundPolicy', 'lineup',
+          'sellMode', 'externalUrl', 'externalSeller', 'gatePrice', 'status', 'closesAt', 'updatedAt'])
+        && str(d.title, 1, 140) && str(d.shortTitle, 0, 60)
+        && d.category in ['festival', 'activation', 'family', 'comedy']
+        && d.startsAt is string && d.startsAt.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:00[+]02:00$')
+        && (d.endsAt == null || (d.endsAt is string && d.endsAt.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:00[+]02:00$')))
+        && (d.gatesOpen == null || (d.gatesOpen is string && d.gatesOpen.matches('^[0-9]{2}:[0-9]{2}$')))
+        && d.timeTbc is bool && d.is18Plus is bool
+        && str(d.venue, 0, 120) && str(d.address, 0, 200) && str(d.town, 0, 60) && str(d.mapQuery, 0, 200)
+        && imageRef(d.poster)
+        && d.posterColor is string && d.posterColor.matches('^#[0-9A-Fa-f]{6}$')
+        && str(d.description, 0, 5000) && str(d.refundPolicy, 0, 3000)
+        && strList(d.houseRules, 20) && strList(d.amenities, 20) && strList(d.lineup, 150)
+        && d.sellMode in ['site', 'external', 'none']
+        && d.externalUrl is string && (d.externalUrl == '' || d.externalUrl.matches('^https://[^ ]{3,300}$'))
+        && str(d.externalSeller, 0, 60)
+        && (d.gatePrice == null || (d.gatePrice is int && d.gatePrice >= 0 && d.gatePrice <= 100000))
+        && d.status in ['published', 'draft', 'cancelled']
+        && d.closesAt is timestamp
+        && d.updatedAt == request.time;
+    }
+
+    function validType(d) {
+      return d.keys().hasOnly(['group', 'name', 'price', 'seats', 'includes', 'capacity', 'sold', 'order', 'prevId', 'comingSoon', 'lastOrderId'])
+        && str(d.group, 1, 40) && str(d.name, 1, 80)
+        && d.price is int && d.price >= 0 && d.price <= 100000
+        && d.seats is int && d.seats >= 1 && d.seats <= 20
+        && strList(d.includes, 12)
+        && d.capacity is int && d.capacity >= 0 && d.capacity <= 100000
+        && d.order is int && (d.prevId == null || d.prevId is string)
+        && d.comingSoon is bool;
+    }
+
+    match /events/{eventId} {
+      allow read: if resource.data.status in ['published', 'cancelled'] || hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE', 'TICKET_SCANNER']);
+      allow create, update: if eventStaff() && validEvent(request.resource.data);
+      allow delete: if hasRole(['SUPER_ADMIN']);
+
+      match /ticketTypes/{typeId} {
+        // A buyer's checkout moves the sold counter by exactly the quantity of the new order it creates.
+        function buyerUpdate() {
+          let d = request.resource.data;
+          let orderPath = orderDoc(d.lastOrderId);
+          return signedIn()
+            && d.diff(resource.data).affectedKeys().hasOnly(['sold', 'lastOrderId'])
+            && d.lastOrderId is string
+            && !exists(orderPath)
+            && existsAfter(orderPath)
+            && getAfter(orderPath).data.uid == request.auth.uid
+            && getAfter(orderPath).data.eventId == eventId
+            && getAfter(orderPath).data.typeId == typeId
+            && d.sold == resource.data.sold + getAfter(orderPath).data.qty;
+        }
+        allow read: if true;
+        allow create: if eventStaff() && validType(request.resource.data) && request.resource.data.sold == 0;
+        allow update: if (eventStaff() && validType(request.resource.data) && request.resource.data.sold == resource.data.sold) || buyerUpdate();
+        allow delete: if eventStaff() && resource.data.sold == 0;
+      }
+    }
+
+    match /{p=**}/ticketTypes/{typeId} {
+      allow read: if true;
+    }
+
+    // ---------- Orders, holdings and tickets ----------
+    function typeDoc(eventId, typeId) { return /databases/$(database)/documents/events/$(eventId)/ticketTypes/$(typeId); }
+
+    function validOrder(orderId) {
+      let d = request.resource.data;
+      let typePath = typeDoc(d.eventId, d.typeId);
+      let t = get(typePath).data;
+      let ev = get(eventDoc(d.eventId)).data;
+      let holdPath = holdingDoc(request.auth.uid + '_' + d.eventId);
+      let held = exists(holdPath) ? get(holdPath).data.count : 0;
+      return signedIn()
+        && d.keys().hasOnly(['uid', 'eventId', 'typeId', 'qty', 'price', 'total', 'ticketCount', 'payment', 'createdAt'])
+        && d.uid == request.auth.uid
+        && d.eventId is string && d.typeId is string
+        && d.qty is int && d.qty >= 1 && d.qty <= 10
+        && d.price == t.price
+        && d.total == t.price * d.qty
+        && d.ticketCount == d.qty * t.seats
+        && d.payment == 'none'
+        && d.createdAt == request.time
+        && ev.sellMode == 'site' && ev.status == 'published' && request.time < ev.closesAt
+        && t.capacity > 0 && t.comingSoon == false && t.sold + d.qty <= t.capacity
+        && (t.prevId == null || get(typeDoc(d.eventId, t.prevId)).data.sold >= get(typeDoc(d.eventId, t.prevId)).data.capacity)
+        && getAfter(typePath).data.sold == t.sold + d.qty
+        && getAfter(typePath).data.lastOrderId == orderId
+        && getAfter(holdPath).data.lastOrderId == orderId
+        && getAfter(holdPath).data.count == held + d.ticketCount
+        && getAfter(holdPath).data.count <= 20;
+    }
+
+    match /orders/{orderId} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE']));
+      allow create: if validOrder(orderId);
+    }
+
+    // How many tickets one account holds per event (limit 20). Moves only together with a new order.
+    match /holdings/{hid} {
+      allow read: if signedIn() && (resource == null || resource.data.uid == request.auth.uid);
+      allow create, update: if signedIn()
+        && hid == request.auth.uid + '_' + request.resource.data.eventId
+        && request.resource.data.keys().hasOnly(['uid', 'eventId', 'count', 'lastOrderId'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.lastOrderId is string
+        && !exists(orderDoc(request.resource.data.lastOrderId))
+        && existsAfter(orderDoc(request.resource.data.lastOrderId))
+        && getAfter(orderDoc(request.resource.data.lastOrderId)).data.uid == request.auth.uid
+        && getAfter(orderDoc(request.resource.data.lastOrderId)).data.eventId == request.resource.data.eventId
+        && request.resource.data.count == (resource == null ? 0 : resource.data.count)
+             + getAfter(orderDoc(request.resource.data.lastOrderId)).data.ticketCount;
+    }
+
+    function validTicket(ticketId) {
+      let d = request.resource.data;
+      let parts = ticketId.split('_');
+      let orderPath = orderDoc(d.orderId);
+      let o = getAfter(orderPath).data;
+      return signedIn()
+        && d.keys().hasOnly(['uid', 'orderId', 'eventId', 'typeId', 'typeName', 'seatLabel', 'holderName', 'eventTitle',
+            'eventStartsAt', 'venue', 'poster', 'price', 'status', 'createdAt'])
+        && parts.size() == 2 && parts[0] == d.orderId && parts[1].matches('^[0-9]{1,2}$')
+        && int(parts[1]) < o.ticketCount
+        && !exists(orderPath)
+        && o.uid == request.auth.uid && d.uid == request.auth.uid
+        && d.eventId == o.eventId && d.typeId == o.typeId && d.price == o.price
+        && d.typeName == get(typeDoc(o.eventId, o.typeId)).data.name
+        && d.eventTitle == get(eventDoc(o.eventId)).data.title
+        && d.eventStartsAt == get(eventDoc(o.eventId)).data.startsAt
+        && str(d.seatLabel, 0, 40) && str(d.holderName, 1, 80) && str(d.venue, 0, 200) && imageRef(d.poster)
+        && d.status == 'valid'
+        && d.createdAt == request.time;
+    }
+
+    match /tickets/{ticketId} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid
+        || hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE', 'TICKET_SCANNER']));
+      allow create: if validTicket(ticketId);
+      // Door scan: valid -> used, once, stamped with the scanner and the server time.
+      allow update: if (
+          doorStaff()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'usedAt', 'usedBy'])
+          && resource.data.status == 'valid' && request.resource.data.status == 'used'
+          && request.resource.data.usedAt == request.time
+          && request.resource.data.usedBy == request.auth.uid
+          && get(eventDoc(resource.data.eventId)).data.status == 'published'
+          && request.time < get(eventDoc(resource.data.eventId)).data.closesAt
+        ) || (
+          hasRole(['SUPER_ADMIN', 'ADMIN'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status == 'cancelled'
+        );
+    }
+
+    // ---------- Gallery ----------
+    match /gallery/{id} {
+      allow read: if true;
+      allow create, update: if eventStaff()
+        && request.resource.data.keys().hasOnly(['src', 'alt', 'group', 'year', 'order'])
+        && imageRef(request.resource.data.src) && request.resource.data.src != ''
+        && str(request.resource.data.alt, 1, 200) && str(request.resource.data.group, 1, 60)
+        && request.resource.data.year is int && request.resource.data.year >= 2015 && request.resource.data.year <= 2100
+        && request.resource.data.order is int;
+      allow delete: if eventStaff();
+    }
+
+    // ---------- Activity log (append-only, super admin reads) ----------
+    match /activity/{id} {
+      allow read: if hasRole(['SUPER_ADMIN']);
+      allow create: if hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE', 'TICKET_SCANNER'])
+        && request.resource.data.keys().hasOnly(['actor', 'actorName', 'action', 'target', 'detail', 'at'])
+        && request.resource.data.actor == request.auth.uid
+        && str(request.resource.data.actorName, 0, 120) && str(request.resource.data.action, 1, 60)
+        && str(request.resource.data.target, 0, 120) && str(request.resource.data.detail, 0, 300)
+        && request.resource.data.at == request.time;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
