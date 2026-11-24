@@ -1,4 +1,5 @@
-import { Timestamp, collection, doc, getDocs, serverTimestamp, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { Timestamp, collection, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc, deleteDoc, writeBatch } from 'firebase/firestore';
+import { STATIC_EVENTS, STATIC_GALLERY } from '../../lib/data';
 import { db } from '../../lib/firebase';
 import { closesAt } from '../../lib/eventState';
 import type { MsbEvent, TicketType } from '../../lib/types';
@@ -91,4 +92,29 @@ export async function setEventStatus(e: MsbEvent, status: MsbEvent['status']) {
 
 export function slugify(s: string) {
   return s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'event';
+}
+
+/**
+ * Copies the built-in MSB content (events, ticket types, gallery) into an empty live database.
+ * Runs as the signed-in staff member, so the database rules check every write. Existing items are skipped.
+ */
+export async function importBuiltIn(): Promise<{ events: number; photos: number }> {
+  if (!db) throw new Error('Not connected');
+  let events = 0;
+  let photos = 0;
+  for (const e of STATIC_EVENTS) {
+    if ((await getDoc(doc(db, 'events', e.id))).exists()) continue;
+    await setDoc(doc(db, 'events', e.id), eventPayload({ ...e, endsAt: e.endsAt ?? null }));
+    for (const t of e.ticketTypes ?? []) {
+      await setDoc(doc(db, 'events', e.id, 'ticketTypes', t.id), { ...typePayload(t), sold: 0 });
+    }
+    events++;
+  }
+  for (const g of STATIC_GALLERY) {
+    if ((await getDoc(doc(db, 'gallery', g.id))).exists()) continue;
+    await setDoc(doc(db, 'gallery', g.id), { src: g.src, alt: g.alt, group: g.group, year: g.year, order: g.order });
+    photos++;
+  }
+  await logActivity('Loaded built-in content', `${events} events`, `${photos} gallery photos`);
+  return { events, photos };
 }

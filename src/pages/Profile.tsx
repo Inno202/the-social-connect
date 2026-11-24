@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { collection, onSnapshot, orderBy, query, where, type Timestamp } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc, where, type Timestamp } from 'firebase/firestore';
 import { Download, WifiOff } from 'lucide-react';
 import { PageHero } from '../components/Layout';
 import { Poster } from '../components/Poster';
@@ -30,10 +30,13 @@ export function useMyTickets(uid: string | undefined) {
   useEffect(() => {
     if (!db || !uid) return;
     return onSnapshot(
-      query(collection(db, 'tickets'), where('uid', '==', uid), orderBy('createdAt', 'desc')),
+      // No orderBy here, so the live database needs no extra index; sorted newest first below.
+      query(collection(db, 'tickets'), where('uid', '==', uid)),
       { includeMetadataChanges: true },
       (snap) => {
-        const list = snap.docs.map((d) => toTicket(d.id, d.data({ serverTimestamps: 'estimate' })));
+        const list = snap.docs
+          .map((d) => toTicket(d.id, d.data({ serverTimestamps: 'estimate' })))
+          .sort((a, b) => (b.createdAt as number) - (a.createdAt as number) || a.id.localeCompare(b.id, undefined, { numeric: true }));
         setTickets(list);
         setFromCache(snap.metadata.fromCache);
         try { localStorage.setItem(cacheKey(uid), JSON.stringify(list)); } catch { /* storage full or blocked */ }
@@ -77,6 +80,9 @@ function TicketCard({ t, onOpen }: { t: Ticket; onOpen: () => void }) {
 
 function TicketModal({ t, onClose }: { t: Ticket; onClose: () => void }) {
   const [busy, setBusy] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [holder, setHolder] = useState(t.holderName);
+  const canRename = t.status === 'valid' && !isPast({ startsAt: t.eventStartsAt });
   const s = statusOf(t);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -98,7 +104,31 @@ function TicketModal({ t, onClose }: { t: Ticket; onClose: () => void }) {
             <div><dt className="text-ink-soft">Ticket</dt><dd className="font-semibold">{t.typeName}</dd></div>
             <div><dt className="text-ink-soft">Price</dt><dd className="font-semibold num">{rands(t.price)}</dd></div>
             {t.seatLabel && <div className="col-span-2"><dt className="text-ink-soft">Seat</dt><dd className="font-semibold">{t.seatLabel}</dd></div>}
-            <div className="col-span-2"><dt className="text-ink-soft">Holder</dt><dd className="font-semibold">{t.holderName}</dd></div>
+            <div className="col-span-2">
+              <dt className="text-ink-soft">{t.seatLabel ? 'Guest' : 'Holder'}</dt>
+              {editing ? (
+                <dd>
+                  <form
+                    className="mt-1 flex gap-2"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      const v = holder.trim();
+                      if (v.length < 2 || !db) return;
+                      try { await updateDoc(doc(db, 'tickets', t.id), { holderName: v }); toast('Name changed.'); setEditing(false); } catch { toast('The name could not be changed.', 'error'); }
+                    }}
+                  >
+                    <label htmlFor="holder" className="sr-only">Name on this ticket</label>
+                    <input id="holder" className="field" value={holder} maxLength={80} onChange={(e) => setHolder(e.target.value)} autoFocus />
+                    <button className="btn btn-primary shrink-0">Save</button>
+                  </form>
+                </dd>
+              ) : (
+                <dd className="font-semibold flex items-center justify-between gap-2">
+                  <span className="min-w-0 break-words">{t.holderName}</span>
+                  {canRename && <button type="button" className="btn btn-outline shrink-0 !min-h-[44px] !px-4 text-sm" onClick={() => setEditing(true)}>Change name</button>}
+                </dd>
+              )}
+            </div>
             <div className="col-span-2"><dt className="text-ink-soft">Code</dt><dd className="font-mono text-xs break-all">{t.id}</dd></div>
           </dl>
           <button
@@ -119,7 +149,7 @@ function TicketModal({ t, onClose }: { t: Ticket; onClose: () => void }) {
 }
 
 function AccountPanel() {
-  const { profile, user, rename, changePassword, deleteAccount, signOut } = useAuth();
+  const { profile, user, rename, changePassword, deleteAccount, signOut, hasPassword } = useAuth();
   const [name, setName] = useState(profile?.name ?? '');
   const [cur, setCur] = useState('');
   const [next, setNext] = useState('');
@@ -143,12 +173,18 @@ function AccountPanel() {
         </div>
         <button className="btn btn-primary" disabled={busy === 'name' || name.trim().length < 2}>{busy === 'name' && <Spinner />} Save name</button>
       </form>
-      <form className="panel p-6 space-y-4" onSubmit={(e) => { e.preventDefault(); if (next.length >= 8) void run('pw', async () => { await changePassword(cur, next); setCur(''); setNext(''); }, 'Password changed.'); }}>
+      {!hasPassword && (
+        <div className="panel p-6">
+          <h2 className="display text-3xl">Password</h2>
+          <p className="mt-2 text-ink-soft">You sign in with Google, so there is no password to change here.</p>
+        </div>
+      )}
+      {hasPassword && <form className="panel p-6 space-y-4" onSubmit={(e) => { e.preventDefault(); if (next.length >= 8) void run('pw', async () => { await changePassword(cur, next); setCur(''); setNext(''); }, 'Password changed.'); }}>
         <h2 className="display text-3xl">Password</h2>
         <div><label htmlFor="cur" className="field-label">Current password</label><input id="cur" type="password" className="field" autoComplete="current-password" value={cur} onChange={(e) => setCur(e.target.value)} /></div>
         <div><label htmlFor="new" className="field-label">New password</label><input id="new" type="password" className="field" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /><p className="field-help">At least 8 characters.</p></div>
         <button className="btn btn-primary" disabled={busy === 'pw' || !cur || next.length < 8}>{busy === 'pw' && <Spinner />} Change password</button>
-      </form>
+      </form>}
       <div className="panel p-6 space-y-4">
         <h2 className="display text-3xl">Sign out</h2>
         <button type="button" className="btn btn-outline" onClick={() => void signOut()}>Sign out</button>
@@ -157,15 +193,21 @@ function AccountPanel() {
         className="panel p-6 space-y-4 border-danger/30"
         onSubmit={async (e) => {
           e.preventDefault();
-          if (!delPw) return;
+          if (hasPassword && !delPw) return;
           const ok = await confirmAction({ title: 'Delete your account?', message: 'Your profile and sign-in are removed for good. Your tickets will no longer show here.', confirmLabel: 'Delete account', tone: 'danger' });
-          if (ok) await run('del', () => deleteAccount(delPw), 'Your account was deleted.');
+          if (ok) await run('del', () => deleteAccount(hasPassword ? delPw : undefined), 'Your account was deleted.');
         }}
       >
         <h2 className="display text-3xl">Delete account</h2>
-        <p className="text-ink-soft text-sm">Enter your password to confirm it is you.</p>
-        <div><label htmlFor="delpw" className="field-label">Password</label><input id="delpw" type="password" className="field" autoComplete="current-password" value={delPw} onChange={(e) => setDelPw(e.target.value)} /></div>
-        <button className="btn btn-danger" disabled={!delPw || busy === 'del'}>{busy === 'del' && <Spinner />} Delete my account</button>
+        {hasPassword ? (
+          <>
+            <p className="text-ink-soft text-sm">Enter your password to confirm it is you.</p>
+            <div><label htmlFor="delpw" className="field-label">Password</label><input id="delpw" type="password" className="field" autoComplete="current-password" value={delPw} onChange={(e) => setDelPw(e.target.value)} /></div>
+          </>
+        ) : (
+          <p className="text-ink-soft text-sm">Google will ask you to confirm it is you.</p>
+        )}
+        <button className="btn btn-danger" disabled={(hasPassword && !delPw) || busy === 'del'}>{busy === 'del' && <Spinner />} Delete my account</button>
       </form>
     </div>
   );
@@ -176,7 +218,9 @@ export default function Profile() {
   const { user, ready } = useAuth();
   const [tab, setTab] = useState<'tickets' | 'account'>('tickets');
   const { tickets, fromCache } = useMyTickets(user?.uid);
-  const [open, setOpen] = useState<Ticket | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  // Follow the live ticket, so a name change or a scan shows straight away.
+  const open = tickets?.find((t) => t.id === openId) ?? null;
 
   if (!ready) return <div className="mx-auto max-w-3xl px-4 py-10"><Skeleton className="h-60" /></div>;
   if (!user) return <Navigate to="/account?next=/profile" replace />;
@@ -203,13 +247,13 @@ export default function Profile() {
                   <Link to="/events" className="btn btn-primary mt-6">See events</Link>
                 </div>
               )}
-              <ul className="space-y-3">{tickets?.map((t) => <TicketCard key={t.id} t={t} onOpen={() => setOpen(t)} />)}</ul>
+              <ul className="space-y-3">{tickets?.map((t) => <TicketCard key={t.id} t={t} onOpen={() => setOpenId(t.id)} />)}</ul>
             </>
           )}
           {tab === 'account' && <AccountPanel />}
         </div>
       </div>
-      {open && <TicketModal t={open} onClose={() => setOpen(null)} />}
+      {open && <TicketModal t={open} onClose={() => setOpenId(null)} />}
     </>
   );
 }

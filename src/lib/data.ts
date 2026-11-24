@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, collectionGroup, doc, onSnapshot, query, where, type DocumentData } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, where, type DocumentData } from 'firebase/firestore';
 import { db, firebaseReady } from './firebase';
 import staticEvents from '../data/events.json';
 import staticGallery from '../data/gallery.json';
@@ -58,13 +58,13 @@ export function toType(id: string, d: DocumentData): TicketType {
 /** Public events with their ticket types. Starts from the built-in content, then follows the live database. */
 export function useEvents(opts: { includeDrafts?: boolean } = {}) {
   const [events, setEvents] = useState<MsbEvent[] | null>(firebaseReady ? null : STATIC_EVENTS);
-  const [types, setTypes] = useState<Record<string, TicketType[]> | null>(firebaseReady ? null : {});
+  const [types, setTypes] = useState<Record<string, TicketType[]>>({});
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!db) return;
     const q = opts.includeDrafts ? collection(db, 'events') : query(collection(db, 'events'), where('status', 'in', ['published', 'cancelled']));
-    const un1 = onSnapshot(
+    return onSnapshot(
       q,
       (snap) => setEvents(snap.docs.map((d) => toEvent(d.id, d.data()))),
       (e) => {
@@ -72,31 +72,28 @@ export function useEvents(opts: { includeDrafts?: boolean } = {}) {
         setEvents((cur) => cur ?? STATIC_EVENTS);
       },
     );
-    const un2 = onSnapshot(
-      collectionGroup(db, 'ticketTypes'),
-      (snap) => {
-        const map: Record<string, TicketType[]> = {};
-        snap.docs.forEach((d) => {
-          const eventId = d.ref.parent.parent?.id;
-          if (!eventId) return;
-          (map[eventId] ??= []).push(toType(d.id, d.data()));
-        });
-        setTypes(map);
-      },
-      () => setTypes((t) => t ?? {}),
-    );
-    return () => {
-      un1();
-      un2();
-    };
   }, [opts.includeDrafts]);
+
+  // One small listener per event (no collection-group query, so the live database needs no extra index).
+  const ids = (events ?? []).map((e) => e.id).sort().join('|');
+  useEffect(() => {
+    if (!db || !ids) return;
+    const subs = ids.split('|').map((id) =>
+      onSnapshot(
+        collection(db!, 'events', id, 'ticketTypes'),
+        (snap) => setTypes((cur) => ({ ...cur, [id]: snap.docs.map((d) => toType(d.id, d.data())).sort((a, b) => a.order - b.order) })),
+        () => setTypes((cur) => ({ ...cur, [id]: [] })),
+      ),
+    );
+    return () => subs.forEach((u) => u());
+  }, [ids]);
 
   const merged = useMemo(() => {
     if (!events) return null;
     if (!db) return events;
-    // Wait for both the events and their ticket types, so prices and carts never flash empty.
-    if (!types) return null;
-    return events.map((e) => ({ ...e, ticketTypes: (types[e.id] ?? []).sort((a, b) => a.order - b.order) }));
+    // Wait until every event has its ticket types, so prices and carts never flash empty.
+    if (events.some((e) => !types[e.id])) return null;
+    return events.map((e) => ({ ...e, ticketTypes: types[e.id] }));
   }, [events, types]);
 
   return { events: merged, loading: merged === null, error };
@@ -149,6 +146,11 @@ export function useGallery() {
   return items;
 }
 
+/** Prefixes a file in public/ with the site's base path (e.g. /the-social-connect/ on GitHub Pages). */
+export function asset(path: string): string {
+  return import.meta.env.BASE_URL.replace(/\/$/, '') + path;
+}
+
 /** Local posters are stored without extension; this picks the right file. */
 export function posterSrc(poster: string, size: 'sm' | 'lg' | 'jpg' = 'lg'): string {
   if (!poster) return '';
@@ -159,6 +161,6 @@ export function posterSrc(poster: string, size: 'sm' | 'lg' | 'jpg' = 'lg'): str
     }
     return poster;
   }
-  if (poster.startsWith('/posters/')) return size === 'sm' ? `${poster}-sm.webp` : size === 'jpg' ? `${poster}.jpg` : `${poster}.webp`;
+  if (poster.startsWith('/posters/')) return asset(size === 'sm' ? `${poster}-sm.webp` : size === 'jpg' ? `${poster}.jpg` : `${poster}.webp`);
   return '';
 }

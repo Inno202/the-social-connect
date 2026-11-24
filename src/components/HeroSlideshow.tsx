@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Pause, Play } from 'lucide-react';
+import { asset } from '../lib/data';
 
 /** Full photo slideshow. No text or buttons on the photos: only pause and dots. */
 export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: string; alt: string }[]; interval?: number }) {
@@ -21,7 +22,7 @@ export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: stri
       <div className="relative overflow-hidden rounded-[2rem] bg-ink h-[62vh] min-h-[340px] max-h-[760px]">
         {slides.map((s, n) => (
           <div key={s.src} className="slide absolute inset-0" data-active={n === i} aria-hidden={n !== i} role="group" aria-roledescription="slide" aria-label={`${n + 1} of ${slides.length}`}>
-            <img src={s.src} alt={s.alt} className="w-full h-full object-cover" loading={n === 0 ? 'eager' : 'lazy'} {...{ fetchpriority: n === 0 ? 'high' : 'auto' }} />
+            <img src={asset(s.src)} alt={s.alt} className="w-full h-full object-cover" loading={n === 0 ? 'eager' : 'lazy'} {...{ fetchpriority: n === 0 ? 'high' : 'auto' }} />
           </div>
         ))}
         <div className="absolute bottom-4 inset-x-4 flex items-center justify-between">

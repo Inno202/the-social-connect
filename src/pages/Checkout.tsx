@@ -24,6 +24,7 @@ export default function Checkout() {
   const [agree, setAgree] = useState(false);
   const [adult, setAdult] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [guests, setGuests] = useState<Record<string, string[]>>({});
   const [busy, setBusy] = useState(false);
   const [issued, setIssued] = useState(0);
   const [failed, setFailed] = useState<string[]>([]);
@@ -63,7 +64,7 @@ export default function Checkout() {
     let count = 0;
     for (const p of priced) {
       try {
-        const r = await issueLine(db, user.uid, name.trim(), { eventId: p.event.id, typeId: p.type.id, qty: p.qty });
+        const r = await issueLine(db, user.uid, name.trim(), { eventId: p.event.id, typeId: p.type.id, qty: p.qty }, guests[`${p.event.id}|${p.type.id}`] ?? []);
         count += r.tickets;
         cart.set(p.event.id, p.type.id, 0);
       } catch (err) {
@@ -96,6 +97,42 @@ export default function Checkout() {
               <p className="field-help">Your tickets are saved to this account.</p>
             </div>
           </div>
+          {priced.filter((p) => p.type.seats > 1).map((p) => {
+            const key = `${p.event.id}|${p.type.id}`;
+            const list = guests[key] ?? [];
+            return (
+              <fieldset key={key} className="panel p-6 space-y-4">
+                <legend className="sr-only">Guest names for {p.type.name}</legend>
+                <h2 className="display text-3xl">{p.type.name}: <span className="text-leaf">guests</span></h2>
+                <p className="text-sm text-ink-soft">Each seat gets its own ticket with the guest's name. Leave a seat empty to use your name; you can change names later in My tickets.</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {Array.from({ length: p.qty * p.type.seats }, (_, i) => {
+                    const table = Math.floor(i / p.type.seats) + 1;
+                    const seat = (i % p.type.seats) + 1;
+                    const id = `guest-${p.type.id}-${i}`;
+                    return (
+                      <div key={id}>
+                        <label htmlFor={id} className="field-label">{p.qty > 1 ? `Table ${table}, seat ${seat}` : `Seat ${seat}`}</label>
+                        <input
+                          id={id}
+                          className="field"
+                          maxLength={80}
+                          autoComplete="off"
+                          placeholder={i === 0 ? name || 'Your name' : 'Guest name'}
+                          value={list[i] ?? ''}
+                          onChange={(e) => {
+                            const next = [...list];
+                            next[i] = e.target.value;
+                            setGuests({ ...guests, [key]: next });
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            );
+          })}
           <div className="panel p-6 space-y-4">
             {needs18 && (
               <div>

@@ -2,9 +2,9 @@
 
 The website for MSB Events, the Matjhabeng (Welkom, Free State) events company behind Matjhabeng Spring Blow, Soulful Blow, Spin Blow and Summer Blow, the MSB Fun Walk & Family Day and MSB Comedy Night.
 
-Built in the Bokamoso style: React, Vite, Tailwind 4 and TypeScript, with Firebase Auth and Firestore (strict rules with tests), pre-rendered public pages, a service worker so tickets open offline, and Cloudinary uploads.
+Built in the Bokamoso style: React, Vite, Tailwind 4 and TypeScript, with Firebase Auth (email and Google) and Firestore (strict rules with tests), pre-rendered public pages, a service worker so tickets open offline, and Cloudinary uploads.
 
-**Nothing is live.** There is no Firebase project yet. Everything runs and is tested against the local Firebase emulators. **No payments are taken**: checkout issues tickets without charging, and the site says so.
+**Nothing is live yet.** The Firebase project `msbevents-74e03` exists and is connected, but the rules are not published and the site is not deployed. All tests run against the local Firebase emulators. **No payments are taken**: checkout issues tickets without charging, and the site says so.
 
 - What was decided and why: [`docs/DECISIONS.md`](docs/DECISIONS.md)
 - Content still needed from MSB Events: [`PLACEHOLDERS.md`](PLACEHOLDERS.md)
@@ -82,56 +82,59 @@ npm run test:e2e
 npm run build
 ```
 
-`test:rules` and `test:e2e` start their own emulators. The e2e suite saves screenshots to `docs/screenshots/`. The offline check runs against the production build:
+`test:rules` and `test:e2e` start their own emulators. The e2e suite saves screenshots to `docs/screenshots/`. Three scripted checks run against a production build with the emulators running and seeded:
 
-```bash
-VITE_USE_EMULATORS=true npm run build && (npx vite preview --port 4173 &) && npm run emulators
-```
+- `tests/e2e/offline-check.mjs`: tickets and the scanner without signal (build with `VITE_USE_EMULATORS=true`, serve with `npx vite preview --port 4173`).
+- `tests/e2e/pages-check.mjs`: the GitHub Pages build under `/the-social-connect/` (build with `VITE_BASE=/the-social-connect/ VITE_USE_EMULATORS=true`, serve with `node scripts/pages-server.mjs`).
+- `tests/e2e/import-check.mjs`: "Load MSB events" on an empty database (wipes the emulator data).
 
-then, with the emulators seeded, `NODE_PATH=node_modules node tests/e2e/offline-check.mjs`.
+Run each with `NODE_PATH=node_modules node <file>`.
 
-## Setting up Firebase (console steps for you)
+## Firebase project: `msbevents-74e03`
 
-1. Go to https://console.firebase.google.com, **Add project**, name it (for example `msb-events`). Google Analytics is not needed.
-2. **Build → Authentication → Get started → Email/Password → Enable.** Under **Settings**, turn on **Email enumeration protection**. Under **Settings → Authorized domains**, add your domain once you have one.
-3. **Build → Firestore Database → Create database**, production mode, location **africa-south1 (Johannesburg)** if offered, otherwise the nearest region.
-4. **Project settings → General → Your apps → Web app (`</>`)**. Register it (tick Firebase Hosting if you will host there) and copy the config values into a new `.env.local` file using the names in `.env.example`. These are public identifiers, not secrets.
-5. Install the CLI and deploy the rules and indexes (the rules must go live before or with the site):
-   ```bash
-   npx firebase login
-   ```
-   ```bash
-   npx firebase use --add
-   ```
-   ```bash
-   npx firebase deploy --only firestore:rules,firestore:indexes
-   ```
-6. **App Check (bot protection):** in the Google reCAPTCHA admin console create a reCAPTCHA v3 key for your domain, put the site key in `VITE_RECAPTCHA_SITE_KEY`, register it under **Build → App Check**, watch the metrics for a few days, then press **Enforce** for Firestore and Authentication.
-7. **Content:** the seed script only works with the local emulators. On the real project, add events in the dashboard (or ask for a one-off import script).
-8. **First super admin:** sign up on the site, then in **Firestore → users → (your user id)** change `role` to `SUPER_ADMIN`. From then on, roles are changed in the dashboard (Users and roles).
-9. **Cloudinary:** create an account, then **Settings → Upload → Add upload preset**: Signing mode **Unsigned**, Folder `msb`, Allowed formats `jpg,png,webp`, max file size 8 MB, incoming transformation `c_limit,w_2400`. Put the cloud name and preset name in `.env.local`.
-10. **Budget alert:** in Google Cloud Billing, set a budget alert so a traffic spike cannot surprise you.
+Done by you: the project, Email/Password and Google sign-in, `inno202.github.io` as an authorized domain, and Firestore. The web config is in `.env.production` (public identifiers, not secrets; Google Analytics is left out on purpose because the Privacy policy promises no tracking).
+
+Still to do in the console (in this order):
+
+1. **Publish the database rules (most urgent).** Firestore → **Rules** → replace everything with the contents of [`firestore.rules`](firestore.rules) → **Publish**. Until you do, Firestore uses whatever rules it was created with: in "test mode" anyone can read and change everything; in "production mode" the site cannot load or save anything. No indexes are needed.
+   (CLI alternative: `npx firebase login`, then `npx firebase deploy --only firestore:rules`.)
+2. **Email enumeration protection:** Authentication → Settings → User actions → turn on.
+3. **Restrict the API key:** Google Cloud console → APIs & Services → Credentials → "Browser key (auto created by Firebase)" → Website restrictions: `inno202.github.io/*`, `msbevents-74e03.firebaseapp.com/*`, `localhost/*` (plus your own domain later).
+4. **First super admin:** once the site is published, sign up on it, then in Firestore → `users` → your user id, change `role` from `USER` to `SUPER_ADMIN`. From then on change roles in the dashboard (Users and roles).
+5. **Load the events:** sign in as that super admin, open Dashboard → Events and press **Load MSB events**. It copies the 9 events from the posters (with their ticket types) and the poster gallery into the live database, through the same rules as everything else.
+6. **Bot protection (later):** create a reCAPTCHA v3 key for `inno202.github.io`, put the site key in `VITE_RECAPTCHA_SITE_KEY` in `.env.production`, register it under Build → App Check, watch the metrics for a few days, then **Enforce**.
+7. **Cloudinary (for poster and photo uploads):** create an account, then Settings → Upload → Add upload preset: Unsigned, folder `msb`, formats `jpg,png,webp`, max 8 MB, incoming transformation `c_limit,w_2400`. Put the cloud name and preset in `.env.production`. Until then, staff paste image links.
+8. **Budget alert** in Google Cloud Billing.
+
+## Publishing on GitHub Pages (only when you approve)
+
+The site is ready to be served at `https://inno202.github.io/the-social-connect/` (or `/msb-events/` if you rename the repository; the path follows the repository name).
+
+1. Merge the working branch into `main` (your decision).
+2. GitHub → repository **Settings → Pages → Source: GitHub Actions**.
+3. **Actions → Deploy to GitHub Pages → Run workflow** (it only runs when started by hand). It runs the unit tests, builds, and publishes.
+4. A custom domain later: add it in Settings → Pages, add it to Firebase authorized domains and the API key restrictions, and set the repository variable `SITE_BASE` to `/`.
+
+GitHub Pages cannot send security headers, so the Content-Security-Policy and referrer policy are in a `<meta>` tag, a script stops the site being framed, and GitHub forces HTTPS. Unknown paths (cart, tickets, dashboard) are served by `404.html`, which opens the right page in the app.
 
 ## Going live: what is still needed
 
-- **Firebase project and keys** (steps above) and the `.env.local` values.
-- **Domain** (for example `msbevents.co.za`): connect it under **Hosting → Add custom domain**; Firebase issues HTTPS automatically. `firebase.json` already sends the security headers (CSP, HSTS, nosniff, referrer policy, camera only for this site, no framing).
-- **Payments** (not built): a browser-only site cannot safely take money. To sell paid tickets you need:
+- **Payments** (not built; you will choose the provider later). MSB will sell paid tickets on this site, so when you are ready you need:
   1. A merchant account with **PayFast**, **Yoco** or **Paystack** (all support South African cards and instant EFT).
   2. A server function (Firebase Cloud Functions, which needs the Blaze pay-as-you-go plan) that creates the payment from the cart, sends the buyer to the provider's hosted checkout, and receives the provider's webhook (ITN for PayFast).
-  3. Only that function issues paid tickets (with the Admin SDK); the rules would then stop browsers creating orders for paid ticket types. Free tickets can keep the current flow.
-  4. Update the Terms (refund policy, fees) and Privacy policy (the payment provider) before switching on.
+  3. Only that function issues paid tickets (with the Admin SDK); the rules would then stop browsers creating orders for paid ticket types. Free tickets keep the current flow.
+  4. Update the Terms (refund policy, fees) and the Privacy policy (the payment provider) before switching on.
+  Until then, checkout issues tickets without charging and says so, so keep real paid events on "Outside link" (Computicket).
 - **Content from MSB Events**: see [`PLACEHOLDERS.md`](PLACEHOLDERS.md).
-- **Deploy** (only when you approve): `npm run build` then `npx firebase deploy --only hosting`.
 
 ## Security check (the 20 tips)
 
 | # | Tip | Status |
 | --- | --- | --- |
-| 1 | Hide API keys | Done: no secrets in the code or bundle; `.env.example` has placeholders only. Firebase web config and the Cloudinary preset name are public identifiers. |
+| 1 | Hide API keys | Done: no secrets in the code or bundle. The Firebase web config in `.env.production` is a public identifier by design. **Needs you:** restrict the API key to your domains (step 3). |
 | 2 | Purge Git secrets | Done: new repository, history scanned, `.env*` ignored. |
-| 3 | Use public DB key | Done: the browser only has the Firebase web config; the Admin SDK is used only by the local seed script against emulators. |
-| 4 | Row-level security | Done: `firestore.rules` denies everything by default and allows each collection explicitly. |
+| 3 | Use public DB key | Done: the browser only has the Firebase web config; the Admin SDK is used only by local test scripts against the emulators. |
+| 4 | Row-level security | Done in `firestore.rules` (default deny, each collection allowed explicitly). **Needs you:** publish them (step 1). |
 | 5 | Encrypt sensitive data | Done for what applies: HTTPS, Google encryption at rest, no card data, minimal personal data. |
 | 6 | Server-side auth | Done: every protected read and write is checked in the rules with `request.auth.uid`. |
 | 7 | Lock record access | Done: people read only their own tickets, orders and profile; staff access comes from a role the user cannot edit; deactivated staff lose access at once; role changes need a sign-in within 8 hours. |
@@ -139,12 +142,12 @@ then, with the emulators seeded, `NODE_PATH=node_modules node tests/e2e/offline-
 | 9 | Secure session cookies | Not applicable: no cookies; Firebase Auth handles tokens. |
 | 10 | Hash passwords | Done by Firebase Auth; minimum 8 characters. |
 | 11 | Rate limit login | Firebase's built-in throttling; generic "email or password is incorrect" message. **Needs you:** turn on email enumeration protection (step 2). |
-| 12 | Bot protection | Built in (App Check with reCAPTCHA v3) plus the 20-tickets-per-event limit. **Needs you:** site key and enforcement (step 6). |
+| 12 | Bot protection | Built in (App Check with reCAPTCHA v3) plus the 20-tickets-per-account-per-event limit. **Needs you:** site key and enforcement (step 6). |
 | 13 | Parameterize queries | Done: Firestore queries are built from typed values only. |
 | 14 | Validate all input | Done on the page (helpful messages) and in the rules (safety). |
 | 15 | Escape user content | Done: React escapes text; no raw HTML; outside links must be `https://` and open with `noopener noreferrer`; CSV exports neutralise spreadsheet formulas. |
-| 16 | Restrict file uploads | Done in the app (JPG/PNG/WebP, 8 MB) and rules (only Cloudinary or built-in image links). **Needs you:** lock the Cloudinary preset (step 9). |
+| 16 | Restrict file uploads | Done in the app (JPG/PNG/WebP, 8 MB) and rules (only Cloudinary or built-in image links). **Needs you:** lock the Cloudinary preset (step 7). |
 | 17 | Trim API responses | Done: public documents hold no emails; tickets hold only what the gate needs. |
-| 18 | Security headers | Done in `firebase.json`, plus a frame-busting check in the app for hosts that cannot send headers. |
-| 19 | Force HTTPS | Done by Firebase Hosting, with HSTS and `upgrade-insecure-requests`. |
+| 18 | Security headers | GitHub Pages: CSP and referrer policy in a `<meta>` tag, plus a frame-busting script (a meta tag cannot block framing). `firebase.json` sends the full set as headers if you ever move to Firebase Hosting. |
+| 19 | Force HTTPS | GitHub Pages forces HTTPS for github.io (tick "Enforce HTTPS" for a custom domain); the CSP adds `upgrade-insecure-requests`. |
 | 20 | Scan dependencies | Done: `npm audit --omit=dev` reports 0. Remaining moderate advisories are in development tools only (firebase-tools). Turn on Dependabot in GitHub settings. |

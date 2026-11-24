@@ -33,7 +33,7 @@ export function Terms() {
 
       <h2>Accounts</h2>
       <ul>
-        <li>You need an account to get tickets here. Keep your password to yourself; you are responsible for tickets issued to your account.</li>
+        <li>You need an account to get tickets here. You can sign up with your email and a password, or with your Google account. Keep your sign-in to yourself; you are responsible for tickets issued to your account.</li>
         <li>You can change your name and password, or delete your account, on the My tickets page.</li>
       </ul>
 
@@ -41,10 +41,11 @@ export function Terms() {
       <ul>
         <li><strong>No payments are taken on this site at the moment.</strong> Checkout issues tickets without charging you. If paid checkout is switched on later, these terms will be updated first.</li>
         <li>Each ticket has its own QR code and admits one person once. A ticket that has been scanned cannot be used again, so do not share or copy it.</li>
-        <li>A VIP table is sold per table. It comes as one ticket per seat (4 or 8), so each guest can be scanned at the door.</li>
+        <li>A VIP table is sold per table. It comes as one ticket per seat (4 or 8), each with a guest's name, so each guest can be scanned at the door. You can change the name on a ticket in My tickets until it has been scanned. Only enter the names of people who have agreed to it.</li>
         <li>Free tickets (for example at activations) work the same way and are still scanned at the door.</li>
         <li>Releases open in order and can sell out. A gate price shown on an event is for information only and is not sold online.</li>
         <li>One account can hold up to 20 tickets for one event.</li>
+        <li>MSB Events plans to sell paid tickets on this site. That will only start once a payment provider is connected and these terms are updated.</li>
         <li>Promo codes are not available yet.</li>
       </ul>
 
@@ -93,7 +94,8 @@ export function Privacy() {
 
       <h2>What we collect</h2>
       <ul>
-        <li><strong>Your account:</strong> your name, email address and a password. The password is stored only by Google Firebase Authentication in hashed form; we never see it.</li>
+        <li><strong>Your account:</strong> your name and email address. If you sign up with a password, it is stored only by Google Firebase Authentication in hashed form; we never see it. If you sign in with Google, Google shares your name and email address with us (we do not use your Google photo or contacts).</li>
+        <li><strong>Guest names:</strong> names you enter for the seats of a VIP table are stored on those tickets and shown to door staff when the ticket is scanned.</li>
         <li><strong>Your tickets and orders:</strong> the event, ticket type, quantity, the name on the ticket (your account name), the date issued, and whether and when the ticket was scanned at the door.</li>
         <li><strong>Staff:</strong> for staff accounts, their role and a log of actions taken in the dashboard (for example editing an event or scanning a ticket).</li>
       </ul>
@@ -109,6 +111,8 @@ export function Privacy() {
       <h2>Who handles it for us</h2>
       <ul>
         <li><strong>Google Firebase</strong> (Authentication and Cloud Firestore) stores accounts, tickets and orders. Data may be stored outside South Africa.</li>
+        <li><strong>Google sign-in</strong>, if you choose it, handles signing you in with your Google account.</li>
+        <li><strong>GitHub Pages</strong> hosts the website files; like any web host, it receives your browser's IP address when pages load.</li>
         <li><strong>Google Fonts</strong> serves the site's fonts, so your browser's IP address reaches Google when the page loads.</li>
         <li><strong>Cloudinary</strong> stores event posters and gallery photos uploaded by staff.</li>
         <li><strong>Google reCAPTCHA</strong> (through Firebase App Check), when switched on, checks that sign-ups and checkouts come from real people.</li>
@@ -124,7 +128,7 @@ export function Privacy() {
 
       <h2>Your rights</h2>
       <ul>
-        <li>You can see and correct your name, and delete your account, on the My tickets page. Deleting your account removes your profile and sign-in. Ticket records stay linked to the account for event records unless you ask us to remove them.</li>
+        <li>You can see and correct your name and the names on your tickets, and delete your account, on the My tickets page. Deleting your account removes your profile and sign-in. Ticket records stay linked to the account for event records unless you ask us to remove them.</li>
         <li>You may ask what information we hold about you, ask us to correct or delete it, or object to how we use it, by contacting <ToAdd>MSB Events privacy email</ToAdd>.</li>
         <li>You may complain to the Information Regulator (South Africa) at inforegulator.org.za.</li>
       </ul>
@@ -144,7 +148,7 @@ export function Cookies() {
       <p>The MSB Events website does not use advertising or analytics cookies, and it does not track you across other sites.</p>
       <h2>What is stored on your device</h2>
       <ul>
-        <li><strong>Sign-in:</strong> Firebase Authentication keeps you signed in using your browser's storage (IndexedDB). Signing out removes it.</li>
+        <li><strong>Sign-in:</strong> Firebase Authentication keeps you signed in using your browser's storage (IndexedDB). Signing out removes it. If you sign in with Google, Google's own sign-in window may use Google cookies.</li>
         <li><strong>Cart:</strong> the tickets in your cart are kept in your browser's local storage until you check out or empty the cart.</li>
         <li><strong>Offline tickets:</strong> your tickets, and the site itself, are saved on your device (IndexedDB and a service worker cache) so they open at the gate without signal. Door staff devices keep the ticket list of the event they are scanning for the same reason.</li>
         <li><strong>Bot protection:</strong> when switched on, Google reCAPTCHA may set its own cookies to tell people from bots.</li>

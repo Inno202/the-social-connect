@@ -116,8 +116,12 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   await expect(page.getByText('Details', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText(/Confirm that everyone on these tickets is 18/)).toBeVisible();
+  // Each seat of the VIP table gets a guest name (empty seats use the buyer's name).
+  await expect(page.getByRole('heading', { name: /VIP table for 4: guests/i })).toBeVisible();
+  await page.getByLabel('Seat 2', { exact: true }).fill('Thabo Guest');
   await page.getByLabel('Everyone on these tickets is 18 or older.').check();
   await page.getByLabel(/I accept the/).check();
+  await shot(page, 'checkout-details-desktop');
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText('No payment is taken.')).toBeVisible();
   await shot(page, 'checkout-pay-desktop', false);
@@ -145,6 +149,16 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   await checkA11y(page, 'my tickets');
   await shot(page, 'my-tickets-desktop');
   await phoneShot(page, 'my-tickets');
+
+  // The guest name is on seat 2, and the owner can change it.
+  await page.locator('main ul li button', { hasText: 'Seat 2 of 4' }).click();
+  const seat = page.getByRole('dialog', { name: 'Ticket' });
+  await expect(seat.getByText('Thabo Guest')).toBeVisible();
+  await seat.getByRole('button', { name: 'Change name' }).click();
+  await seat.getByLabel('Name on this ticket').fill('Thabo Mokoena');
+  await seat.getByRole('button', { name: 'Save' }).click();
+  await expect(seat.getByText('Thabo Mokoena')).toBeVisible();
+  await seat.getByRole('button', { name: 'Close ticket' }).click();
 
   // Open a general ticket, read its code, download the PDF.
   await page.locator('main ul li button', { hasText: '2nd release' }).first().click();

@@ -27,10 +27,13 @@ Everything below is either a placeholder or missing. The site shows honest wordi
 - [ ] **About page:** the draft is written only from the facts you gave. Please read it and correct or extend it (founding year, founders, the story behind the name).
 - [ ] House rules and what is available (food, hubbly, parking) for the big festivals; only the 1st Location activation has these.
 
+## Answered
+- All Blow events and activations are strictly 18+ (set).
+- Each VIP guest's name goes on their seat's ticket (asked at checkout, changeable in My tickets until scanned).
+- Paid tickets will be sold on this site; the payment provider will be chosen later (PayFast, Yoco or Paystack).
+- The ticket limit applies per account (20 per account for each event).
+
 ## Open questions
-1. Are all Blow events and activations strictly 18+? (Set that way now.) Is the Boitumelo Junction activation 18+?
-2. Should children's tickets for the Fun Walk keep the "aged 5 to 13" rule shown at the gate (ID check), and are under-5s free?
-3. Should VIP table buyers enter each guest's name, or is the buyer's name on every seat enough?
-4. Do you want to sell on this site at all once payments are switched on, or keep Computicket and use the site for free tickets and information?
-5. Which payment provider: PayFast, Yoco or Paystack?
-6. Is 20 tickets per account per event the right limit?
+1. Is the Boitumelo Junction activation 18+ like the others? (Set to 18+.)
+2. Fun Walk: are children under 5 free, and is the age checked at the start?
+3. "Per account": I kept the limit at 20 tickets per account for each event. If you meant 20 in total across all events, say so and I will change it.

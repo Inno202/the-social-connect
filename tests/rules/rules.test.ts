@@ -215,6 +215,22 @@ describe('tickets and the door', () => {
     });
     await assertFails(updateDoc(doc(as('scanner'), 'tickets', id), { status: 'used', usedAt: serverTimestamp(), usedBy: 'scanner' }));
   });
+  it('the owner can change the guest name on an unused ticket, and nothing else', async () => {
+    const id = await buy();
+    await assertSucceeds(updateDoc(doc(as('alice'), 'tickets', id), { holderName: 'Thabo M' }));
+    await assertFails(updateDoc(doc(as('bob'), 'tickets', id), { holderName: 'Bob' }));
+    await assertFails(updateDoc(doc(as('alice'), 'tickets', id), { holderName: 'Thabo', typeName: 'VIP table for 8' }));
+    await assertFails(updateDoc(doc(as('alice'), 'tickets', id), { holderName: '' }));
+    await assertSucceeds(updateDoc(doc(as('scanner'), 'tickets', id), { status: 'used', usedAt: serverTimestamp(), usedBy: 'scanner' }));
+    await assertFails(updateDoc(doc(as('alice'), 'tickets', id), { holderName: 'Someone else' }));
+  });
+  it('guest names chosen at checkout go on each seat of a table', async () => {
+    const { orderId } = await issueLine(as('alice'), 'alice', 'Alice', { eventId: 'ev', typeId: 'vip8', qty: 1 }, ['Alice', 'Thabo', '', 'Lerato']);
+    const seat2 = await getDoc(doc(as('alice'), 'tickets', `${orderId}_1`));
+    const seat3 = await getDoc(doc(as('alice'), 'tickets', `${orderId}_2`));
+    expect(seat2.data()?.holderName).toBe('Thabo');
+    expect(seat3.data()?.holderName).toBe('Alice');
+  });
   it('only admins cancel tickets', async () => {
     const id = await buy();
     await assertFails(updateDoc(doc(as('scanner'), 'tickets', id), { status: 'cancelled' }));

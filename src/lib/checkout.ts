@@ -12,7 +12,7 @@ export class CheckoutError extends Error {}
  * release's sold counter and the buyer's per-event holding move together, so counts can never drift.
  * No money is taken: there is no payment provider connected yet. Firestore rules check every value.
  */
-export async function issueLine(db: Firestore, uid: string, holderName: string, line: CartLine): Promise<{ orderId: string; tickets: number }> {
+export async function issueLine(db: Firestore, uid: string, holderName: string, line: CartLine, guestNames: string[] = []): Promise<{ orderId: string; tickets: number }> {
   const orderRef = doc(collection(db, 'orders'));
   const orderId = orderRef.id;
   const eventRef = doc(db, 'events', line.eventId);
@@ -63,7 +63,7 @@ export async function issueLine(db: Firestore, uid: string, holderName: string, 
           typeId: type.id,
           typeName: type.name,
           seatLabel: type.seats > 1 ? `Seat ${seat + 1} of ${type.seats}${line.qty > 1 ? `, table ${unit + 1}` : ''}` : '',
-          holderName: holderName.slice(0, 80),
+          holderName: (guestNames[n]?.trim() || holderName).slice(0, 80),
           eventTitle: ev.title,
           eventStartsAt: ev.startsAt,
           venue: [ev.venue, ev.town].filter(Boolean).join(', '),

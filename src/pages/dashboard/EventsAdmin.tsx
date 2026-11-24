@@ -1,11 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Copy, Pencil, Plus, XCircle } from 'lucide-react';
-import { useEvents } from '../../lib/data';
+import { Copy, DownloadCloud, Pencil, Plus, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { useEvents, STATIC_EVENTS } from '../../lib/data';
 import { isPast } from '../../lib/eventState';
 import { shortDate } from '../../lib/format';
 import { Poster } from '../../components/Poster';
-import { Skeleton, confirmAction, toast } from '../../components/ui';
-import { duplicateEvent, setEventStatus } from './adminData';
+import { Skeleton, Spinner, confirmAction, toast } from '../../components/ui';
+import { duplicateEvent, importBuiltIn, setEventStatus } from './adminData';
 
 const SELL: Record<string, string> = { site: 'Sold here', external: 'Outside link', none: 'Not on sale' };
 
@@ -13,6 +14,8 @@ export default function EventsAdmin() {
   const { events, loading } = useEvents({ includeDrafts: true });
   const nav = useNavigate();
   const list = [...(events ?? [])].sort((a, b) => b.startsAt.localeCompare(a.startsAt));
+  const [importing, setImporting] = useState(false);
+  const missing = events ? STATIC_EVENTS.filter((s) => !events.some((e) => e.id === s.id)).length : 0;
 
   return (
     <div>
@@ -21,6 +24,25 @@ export default function EventsAdmin() {
         <Link to="new" className="btn btn-primary"><Plus className="size-4 text-lime" aria-hidden /> New event</Link>
       </div>
       {loading && <div className="space-y-3"><Skeleton className="h-24" /><Skeleton className="h-24" /></div>}
+      {!loading && missing > 0 && (
+        <div className="panel p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex-1">
+            <h3 className="font-bold">{missing === STATIC_EVENTS.length ? 'The live database is empty' : `${missing} built-in events are not in the database`}</h3>
+            <p className="text-sm text-ink-soft">Load the MSB events from the 2026 posters (with their ticket types) and the poster gallery. Events already there are left as they are.</p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary shrink-0"
+            disabled={importing}
+            onClick={async () => {
+              setImporting(true);
+              try { const r = await importBuiltIn(); toast(`Loaded ${r.events} events and ${r.photos} gallery photos.`); } catch { toast('The content could not be loaded. Check that the database rules are published and your role is admin.', 'error'); } finally { setImporting(false); }
+            }}
+          >
+            {importing ? <Spinner /> : <DownloadCloud className="size-4 text-lime" aria-hidden />} Load MSB events
+          </button>
+        </div>
+      )}
       <ul className="space-y-3">
         {list.map((e) => {
           const past = isPast(e);

@@ -4,9 +4,12 @@ import App from './App';
 import { AuthProvider } from './lib/auth';
 import { STATIC_EVENTS } from './lib/data';
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+/** `url` is the route without the base path, e.g. "/events". */
 export function render(url: string): string {
   return renderToString(
-    <StaticRouter location={url}>
+    <StaticRouter location={BASE + url} basename={BASE || undefined}>
       <AuthProvider>
         <App />
       </AuthProvider>

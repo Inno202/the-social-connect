@@ -10,6 +10,9 @@ import {
   EmailAuthProvider,
   deleteUser,
   sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  reauthenticateWithPopup,
   type User,
 } from 'firebase/auth';
 import { doc, onSnapshot, serverTimestamp, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -22,10 +25,13 @@ interface AuthState {
   ready: boolean;
   signUp(name: string, email: string, password: string): Promise<void>;
   signIn(email: string, password: string): Promise<void>;
+  signInWithGoogle(): Promise<void>;
+  /** True when the account signs in with a password (not only with Google). */
+  hasPassword: boolean;
   signOut(): Promise<void>;
   rename(name: string): Promise<void>;
   changePassword(current: string, next: string): Promise<void>;
-  deleteAccount(current: string): Promise<void>;
+  deleteAccount(current?: string): Promise<void>;
   resetPassword(email: string): Promise<void>;
 }
 
@@ -49,6 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           (d) => {
             const x = d.data();
             setProfile(x ? { uid: u.uid, name: x.name, email: x.email, role: x.role, active: x.active } : null);
+            // First Google sign-in: create the customer profile (email sign-up creates it itself).
+            if (!x && !d.metadata.fromCache && u.email && u.providerData.some((p) => p.providerId === 'google.com')) {
+              void setDoc(doc(db!, 'users', u.uid), {
+                name: (u.displayName || u.email.split('@')[0]).slice(0, 80),
+                email: u.email,
+                role: 'USER',
+                active: true,
+                createdAt: serverTimestamp(),
+              }).catch(() => undefined);
+            }
             setReady(true);
           },
           () => setReady(true),
@@ -81,6 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!auth) throw new Error('Accounts are not set up yet.');
       await signInWithEmailAndPassword(auth, email.trim(), password);
     },
+    async signInWithGoogle() {
+      if (!auth) throw new Error('Accounts are not set up yet.');
+      await signInWithPopup(auth, new GoogleAuthProvider());
+    },
+    hasPassword: Boolean(user?.providerData.some((p) => p.providerId === 'password')),
     async signOut() {
       if (auth) await fbSignOut(auth);
     },
@@ -98,7 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async deleteAccount(current) {
       const u = auth?.currentUser;
       if (!u?.email || !db) return;
-      await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, current));
+      if (current) await reauthenticateWithCredential(u, EmailAuthProvider.credential(u.email, current));
+      else await reauthenticateWithPopup(u, new GoogleAuthProvider());
       await deleteDoc(doc(db, 'users', u.uid));
       await deleteUser(u);
     },
@@ -134,6 +156,10 @@ export function authErrorMessage(e: unknown): string {
   if (code.includes('weak-password')) return 'Choose a password of at least 8 characters.';
   if (code.includes('too-many-requests')) return 'Too many attempts. Wait a few minutes, then try again.';
   if (code.includes('network')) return 'No connection. Check your signal and try again.';
+  if (code.includes('popup-closed-by-user') || code.includes('cancelled-popup-request')) return 'Google sign-in was closed before it finished.';
+  if (code.includes('popup-blocked')) return 'The browser blocked the Google window. Allow pop-ups for this site and try again.';
+  if (code.includes('account-exists-with-different-credential')) return 'This email already has an account. Sign in with your email and password.';
+  if (code.includes('unauthorized-domain')) return 'Google sign-in is not allowed on this web address yet.';
   if (code.includes('requires-recent-login')) return 'Please sign in again, then try once more.';
   return 'Something went wrong. Please try again.';
 }

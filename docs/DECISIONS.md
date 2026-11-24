@@ -28,7 +28,7 @@ Choices made while building, so they can be changed later. Everything visual is 
 
 - **One order per ticket type**, issued in one database transaction with the tickets, the sold counter and the buyer's per-event count, so numbers cannot drift.
 - **Per-account limit:** 20 tickets per event (so two 8-seat tables plus four general tickets fit).
-- **VIP tables** issue one ticket per seat ("Seat 2 of 4"), all in the buyer's name. Asking for each guest's name is a possible later addition.
+- **VIP tables** issue one ticket per seat ("Seat 2 of 4"). Checkout asks a name for each seat (empty seats use the buyer's name); the owner can change the name on a ticket in My tickets until it is scanned. The database rules allow only that one field to change.
 - **Releases** open in order: a release with "Opens after" set goes on sale when that release sells out. "Coming soon" can also be set by hand.
 - **Gate price** is shown for information only.
 - **Promo codes:** the row is shown but switched off ("Coming soon"). Future feature.
@@ -39,3 +39,11 @@ Choices made while building, so they can be changed later. Everything visual is 
 
 - Two **demo events** exist only in the local test database (`node scripts/seed.mjs --demo`): "MSB Test Night (demo event)" with releases, VIP tables and children's tickets, and "Test Activation (demo event)" with free tickets. They exist because every real 2026 event is either past or sold on Computicket, so there was nothing real to buy on this site. Their prices are test values, not MSB prices. The screenshots of the tickets step, cart, my tickets and the PDF use them.
 - The PDF screenshot shows the black "MSB" block on the left because the demo event has no poster. A real event's ticket shows its poster there.
+
+## Live setup (24 November 2026)
+
+- **Firebase project** `msbevents-74e03`; web config in `.env.production` (public). Google Analytics left out: the Privacy policy promises no tracking.
+- **Sign-in:** email and password, and Google (popup). A first Google sign-in creates a customer profile automatically. Google accounts have no password section; deleting the account asks Google to confirm.
+- **No database indexes needed:** ticket lists are sorted in the browser and ticket types are read per event, so a fresh Firestore works after publishing the rules.
+- **Hosting:** GitHub Pages at `inno202.github.io/<repository>/`, published only by running the workflow by hand. The base path follows the repository name, so renaming to `msb-events` keeps working.
+- **Live content:** the 9 events and the poster gallery are loaded with the dashboard's "Load MSB events" button, not with a script, so no admin keys are ever needed.

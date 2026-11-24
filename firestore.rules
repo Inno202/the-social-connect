@@ -112,10 +112,6 @@ service cloud.firestore {
       }
     }
 
-    match /{p=**}/ticketTypes/{typeId} {
-      allow read: if true;
-    }
-
     // ---------- Orders, holdings and tickets ----------
     function typeDoc(eventId, typeId) { return /databases/$(database)/documents/events/$(eventId)/ticketTypes/$(typeId); }
 
@@ -205,6 +201,12 @@ service cloud.firestore {
           hasRole(['SUPER_ADMIN', 'ADMIN'])
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
           && request.resource.data.status == 'cancelled'
+        ) || (
+          // The ticket owner can change the guest name on a ticket that has not been used.
+          signedIn() && resource.data.uid == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['holderName'])
+          && resource.data.status == 'valid'
+          && str(request.resource.data.holderName, 1, 80)
         );
     }
 
