@@ -24,10 +24,10 @@ export const CALENDAR_2026 = [
 ];
 
 export const HERO_SLIDES: { src: string; alt: string; position?: string }[] = [
-  { src: '/brand/hero-1.webp', alt: 'Performer in a silver sequinned outfit on the Spring Blow stage', position: '45% 52%' },
-  { src: '/brand/hero-2.webp', alt: 'Spring Blow crowd cheering at the barrier at night', position: 'center 45%' },
-  { src: '/brand/hero-3.webp', alt: 'Blue car spinning past the crowd behind the barriers' },
-  { src: '/brand/hero-4.webp', alt: 'Performer raising a fist to a crowd of phone lights' },
-  { src: '/brand/hero-5.webp', alt: 'Crowd with umbrellas in the rain at sunset', position: 'center 70%' },
-  { src: '/brand/hero-6.webp', alt: 'View from the stage over the daytime crowd', position: 'center 65%' },
+  { src: '/brand/hero/springblow-performer-sequins-6e397ec0.webp', alt: 'Performer in a silver sequinned outfit on the Spring Blow stage', position: '45% 52%' },
+  { src: '/brand/hero/springblow-crowd-barrier-night-42c7e798.webp', alt: 'Spring Blow crowd cheering at the barrier at night', position: 'center 45%' },
+  { src: '/brand/hero/spinblow-car-drift-blue-0f7c8fce.webp', alt: 'Blue car spinning past the crowd behind the barriers' },
+  { src: '/brand/hero/festival-performer-fist-night-bbfcd4d3.webp', alt: 'Performer raising a fist to a crowd of phone lights' },
+  { src: '/brand/hero/festival-crowd-rain-sunset-4242dc50.webp', alt: 'Crowd with umbrellas in the rain at sunset', position: 'center 70%' },
+  { src: '/brand/hero/festival-stage-view-day-7760364e.webp', alt: 'View from the stage over the daytime crowd', position: 'center 65%' },
 ];

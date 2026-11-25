@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // The app shell, the ticket pages and the posters are kept on the phone so tickets open without signal.
           globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
-          globIgnores: ['**/brand/hero-*', 'posters/*.jpg', 'photos/**', '404.html'],
+          globIgnores: ['brand/hero/**', 'posters/*.jpg', 'photos/**', '404.html'],
           // Pages: newest from the network first, so a new release shows on the next visit;
           // the saved copy (or the app shell) is used only when there is no signal.
           navigateFallback: null,
