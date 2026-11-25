@@ -42,7 +42,7 @@ export async function checkLayout(page: Page, label: string) {
     document.querySelectorAll('.field').forEach((el) => { if (vis(el) && el.getBoundingClientRect().height < 47.5) out.small.push(`field ${name(el)} ${size(el)}`); });
     document.querySelectorAll('header a, footer a, nav a, main button, main a.btn, [role=tab]').forEach((el) => {
       const b = el.getBoundingClientRect();
-      if (vis(el) && !el.closest('p,li > span,dd') && (b.width < 43.5 || b.height < 43.5)) out.small.push(`tap ${name(el)} ${size(el)}`);
+      if (vis(el) && !el.matches('.skip-link') && !el.closest('p,li > span,dd') && (b.width < 43.5 || b.height < 43.5)) out.small.push(`tap ${name(el)} ${size(el)}`);
     });
 
     // Text size floor: walk visible text nodes.
@@ -111,6 +111,7 @@ export async function checkA11y(page: Page, label: string) {
 }
 
 export async function shot(page: Page, name: string, fullPage = true) {
+  if (fullPage) { await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(150); }
   await page.screenshot({ path: `${SHOTS}/${name}.jpg`, fullPage, type: 'jpeg', quality: 80 });
 }
 

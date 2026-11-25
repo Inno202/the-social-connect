@@ -90,18 +90,18 @@ export default function Account() {
             {mode === 'signup' && (
               <div>
                 <label htmlFor="name" className="field-label">Your name</label>
-                <input id="name" className="field" autoComplete="name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} aria-invalid={!!errors.name} aria-describedby={errors.name ? 'name-err' : undefined} />
+                <input id="name" className="field" autoComplete="name" value={name} maxLength={80} onChange={(e) => { setName(e.target.value); setErrors((x) => ({ ...x, name: '' })); }} aria-invalid={!!errors.name} aria-describedby={errors.name ? 'name-err' : undefined} />
                 {errors.name && <p id="name-err" className="field-error">{errors.name}</p>}
               </div>
             )}
             <div>
               <label htmlFor="email" className="field-label">Email</label>
-              <input id="email" type="email" inputMode="email" className="field" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'email-err' : undefined} />
+              <input id="email" type="email" inputMode="email" className="field" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => { setEmail(e.target.value); setErrors((x) => ({ ...x, email: '' })); }} aria-invalid={!!errors.email} aria-describedby={errors.email ? 'email-err' : undefined} />
               {errors.email && <p id="email-err" className="field-error">{errors.email}</p>}
             </div>
             <div>
               <label htmlFor="password" className="field-label">Password</label>
-              <PasswordInput id="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={!!errors.password} aria-describedby={errors.password ? 'pw-err' : mode === 'signup' ? 'pw-help' : undefined} />
+              <PasswordInput id="password" autoComplete={mode === 'signup' ? 'new-password' : 'current-password'} value={password} onChange={(e) => { setPassword(e.target.value); setErrors((x) => ({ ...x, password: '' })); }} aria-invalid={!!errors.password} aria-describedby={errors.password ? 'pw-err' : mode === 'signup' ? 'pw-help' : undefined} />
               {errors.password ? <p id="pw-err" className="field-error">{errors.password}</p> : mode === 'signup' && <p id="pw-help" className="field-help">At least 8 characters.</p>}
             </div>
             {errors.form && <p className="field-error" role="alert">{errors.form}</p>}

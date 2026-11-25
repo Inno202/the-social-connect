@@ -114,7 +114,7 @@ export default function Checkout() {
             <div className="panel p-6 space-y-5">
               <div>
                 <label htmlFor="name" className="field-label">Name on the tickets</label>
-                <input id="name" className="field" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'name-err' : undefined} />
+                <input id="name" className="field" value={name} onChange={(e) => { setName(e.target.value); setErrors((x) => ({ ...x, name: '' })); }} maxLength={80} autoComplete="name" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'name-err' : undefined} />
                 {errors.name && <p id="name-err" className="field-error">{errors.name}</p>}
               </div>
               <div>
@@ -163,7 +163,7 @@ export default function Checkout() {
               {needs18 && (
                 <div>
                   <label className="check-row">
-                    <input id="adult" type="checkbox" className="check" checked={adult} onChange={(e) => setAdult(e.target.checked)} aria-invalid={!!errors.adult} aria-describedby={errors.adult ? 'adult-err' : undefined} />
+                    <input id="adult" type="checkbox" className="check" checked={adult} onChange={(e) => { setAdult(e.target.checked); setErrors((x) => ({ ...x, adult: '' })); }} aria-invalid={!!errors.adult} aria-describedby={errors.adult ? 'adult-err' : undefined} />
                     <span>Everyone on these tickets is 18 or older.</span>
                   </label>
                   {errors.adult && <p id="adult-err" className="field-error">{errors.adult}</p>}
@@ -172,7 +172,7 @@ export default function Checkout() {
               )}
               <div>
                 <label className="check-row">
-                  <input id="agree" type="checkbox" className="check" checked={agree} onChange={(e) => setAgree(e.target.checked)} aria-invalid={!!errors.agree} aria-describedby={errors.agree ? 'agree-err' : undefined} />
+                  <input id="agree" type="checkbox" className="check" checked={agree} onChange={(e) => { setAgree(e.target.checked); setErrors((x) => ({ ...x, agree: '' })); }} aria-invalid={!!errors.agree} aria-describedby={errors.agree ? 'agree-err' : undefined} />
                   <span>I accept the <Link to="/terms" className="link" target="_blank">Terms</Link> and the <Link to="/privacy" className="link" target="_blank">Privacy policy</Link>.</span>
                 </label>
                 {errors.agree && <p id="agree-err" className="field-error">{errors.agree}</p>}

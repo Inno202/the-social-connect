@@ -112,7 +112,7 @@ function TicketDialog({ t, onClose }: { t: Ticket | null; onClose: () => void })
       }
     >
       {t && s && (
-        <div aria-label="Ticket">
+        <div>
           <span className={`pill ${s.cls}`}>{s.label}</span>
           <h2 id="ticket-title" className="t-card-lg text-leaf mt-3">{t.eventTitle}</h2>
           <p className="text-sm text-ink-soft num">{longDate(t.eventStartsAt)}{t.venue ? ` · ${t.venue}` : ''}</p>

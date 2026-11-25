@@ -112,12 +112,10 @@ export function Dialog({
       onCancel={(e) => { e.preventDefault(); onClose(); }}
       onClick={(e) => { if (e.target === ref.current) onClose(); }}
     >
-      {title && (
-        <div className="dialog-head flex items-start justify-between gap-3">
-          <h2 id={titleId} className="t-card min-w-0">{title}</h2>
-          <button type="button" className="icon-btn icon-btn-ghost -mt-1 -mr-2" onClick={onClose} aria-label="Close"><X aria-hidden /></button>
-        </div>
-      )}
+      <div className="dialog-head flex items-start justify-between gap-3">
+        {title ? <h2 id={titleId} className="t-card min-w-0">{title}</h2> : <span />}
+        <button type="button" className="icon-btn icon-btn-ghost -mt-1 -mr-2" onClick={onClose} aria-label="Close"><X aria-hidden /></button>
+      </div>
       <div className="dialog-body">{children}</div>
       {footer && <div className="dialog-foot">{footer}</div>}
     </dialog>
