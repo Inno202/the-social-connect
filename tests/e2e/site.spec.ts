@@ -187,6 +187,8 @@ test('door scanner: admit with the camera, refuse the second scan, one camera on
     await signIn(page, 'scanner@msb.test', undefined, '/scan');
     await page.goto('/scan');
     await page.getByLabel('Event').selectOption('demo-test-night-2026');
+    await page.waitForTimeout(800);
+    await expect(page.getByLabel('Event'), 'the chosen event stays chosen after the list loads').toHaveValue('demo-test-night-2026');
     const result = page.getByTestId('scan-result');
     if (tag === 'phone') {
       await expect(result).toHaveAttribute('data-ok', 'true', { timeout: 20_000 });

@@ -190,10 +190,11 @@ test('nav bar: Home, Events, Gallery, About; the phone menu adds My tickets / Si
   const d = await desk.newPage();
   await d.goto('/');
   await expect(d.getByRole('navigation', { name: 'Main' }).getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About']);
-  await expect(d.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  const main = d.getByRole('navigation', { name: 'Main' });
+  await expect(main.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
   await d.goto('/events/spring-blow-2026');
-  await expect(d.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'page');
-  await expect(d.getByRole('link', { name: 'Home', exact: true })).not.toHaveAttribute('aria-current', 'page');
+  await expect(main.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(main.getByRole('link', { name: 'Home', exact: true })).not.toHaveAttribute('aria-current', 'page');
   await desk.close();
   const phone = await browser.newContext({ viewport: { width: 360, height: 740 } });
   const p = await phone.newPage();

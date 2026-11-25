@@ -49,9 +49,10 @@ export default function Scanner() {
   const timers = useRef<number[]>([]);
   const processing = useRef(false);
 
+  // Default to the first event, but never override an event the person has already picked.
   useEffect(() => {
-    if (!eventId && choices[0]) setEventId(choices[0].id);
-  }, [choices, eventId]);
+    if (choices[0]) setEventId((cur) => cur || choices[0].id);
+  }, [choices]);
 
   useEffect(() => {
     const on = () => setOnline(true);
