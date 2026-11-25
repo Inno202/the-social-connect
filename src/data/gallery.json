@@ -446,5 +446,21 @@
   "group": "MSB events",
   "year": 0,
   "order": 47
+ },
+ {
+  "id": "p-springblow-performer-sequins",
+  "src": "/photos/springblow-performer-sequins",
+  "alt": "Performer in a silver sequinned outfit on the Spring Blow stage",
+  "group": "Spring Blow",
+  "year": 0,
+  "order": 48
+ },
+ {
+  "id": "p-springblow-crowd-barrier-night",
+  "src": "/photos/springblow-crowd-barrier-night",
+  "alt": "Spring Blow crowd cheering at the barrier at night",
+  "group": "Spring Blow",
+  "year": 0,
+  "order": 49
  }
 ]

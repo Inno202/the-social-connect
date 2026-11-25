@@ -23,11 +23,11 @@ export const CALENDAR_2026 = [
   'soulful-blow-december-2026',
 ];
 
-export const HERO_SLIDES = [
-  { src: '/brand/hero-2.webp', alt: 'Packed crowd under green stage lights at night' },
-  { src: '/brand/hero-1.webp', alt: 'Crowd dancing in front of the Soulful Blow 2026 stage on a sunny afternoon' },
-  { src: '/brand/hero-3.webp', alt: 'Guests on the field in front of the Summer Blow stage under a blue sky' },
+export const HERO_SLIDES: { src: string; alt: string; position?: string }[] = [
+  { src: '/brand/hero-1.webp', alt: 'Performer in a silver sequinned outfit on the Spring Blow stage', position: '45% 52%' },
+  { src: '/brand/hero-2.webp', alt: 'Spring Blow crowd cheering at the barrier at night', position: 'center 45%' },
+  { src: '/brand/hero-3.webp', alt: 'Blue car spinning past the crowd behind the barriers' },
   { src: '/brand/hero-4.webp', alt: 'Performer raising a fist to a crowd of phone lights' },
-  { src: '/brand/hero-5.webp', alt: 'Aerial view of a packed festival field at night' },
-  { src: '/brand/hero-6.webp', alt: 'Walkers in MSB Fun Walk 2025 shirts on the road' },
+  { src: '/brand/hero-5.webp', alt: 'Crowd with umbrellas in the rain at sunset', position: 'center 70%' },
+  { src: '/brand/hero-6.webp', alt: 'View from the stage over the daytime crowd', position: 'center 65%' },
 ];

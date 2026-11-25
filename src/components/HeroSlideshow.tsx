@@ -4,7 +4,7 @@ import { heroImg } from '../lib/data';
 
 /** Full photo slideshow. No text or buttons on the photos: only pause and dots.
  *  Each slide's photo loads only when its turn is near (current, next and previous). */
-export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: string; alt: string }[]; interval?: number }) {
+export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: string; alt: string; position?: string }[]; interval?: number }) {
   const [i, setI] = useState(0);
   const [playing, setPlaying] = useState(true);
   const n = slides.length;
@@ -36,6 +36,7 @@ export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: stri
                   height={img.height}
                   alt={s.alt}
                   className="w-full h-full object-cover"
+                  style={s.position ? { objectPosition: s.position } : undefined}
                   loading={k === 0 ? 'eager' : 'lazy'}
                   decoding="async"
                   {...(k === 0 ? { fetchpriority: 'high' } : {})}
