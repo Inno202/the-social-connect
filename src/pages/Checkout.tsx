@@ -213,7 +213,7 @@ export default function Checkout() {
             <CheckCircle2 className="size-10 text-lime" aria-hidden />
             <h1 className="t-title mt-4">Your tickets are <span className="text-lime">ready</span></h1>
             <p className="mt-3 text-white/85 num">{issued} {issued === 1 ? 'ticket was' : 'tickets were'} added to your account. Nothing was charged.</p>
-            <Link to="/profile" className="btn btn-accent btn-lg mt-6">View my tickets <ArrowRight className="btn-arrow" aria-hidden /></Link>
+            <Link to="/tickets" className="btn btn-accent btn-lg mt-6">View my tickets <ArrowRight className="btn-arrow" aria-hidden /></Link>
           </div>
           {failed.length > 0 && (
             <div className="panel p-6 border-danger/40" role="alert">

@@ -33,7 +33,7 @@ ok(await page.getByRole('button', { name: 'Continue with Google' }).isVisible(),
 await page.getByLabel('Email').fill('manager@msb.test');
 await page.getByLabel('Password', { exact: true }).fill('msb-test-pass');
 await page.locator('form button[type=submit]').click();
-await page.waitForURL('**/profile');
+await page.waitForURL('**/tickets');
 await page.goto(`${ROOT}/dashboard/events`);
 await page.getByRole('heading', { name: 'Events', exact: true }).waitFor().then(() => ok(true, 'dashboard opens under the sub-path after email sign-in'), () => ok(false, 'dashboard under sub-path'));
 ok(problems.length === 0, `no console errors, CSP violations or missing files ${problems.slice(0, 5).join(' | ')}`);

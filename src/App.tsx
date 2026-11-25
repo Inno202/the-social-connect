@@ -16,6 +16,7 @@ const Cart = lazy(() => import('./pages/Cart'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 const Account = lazy(() => import('./pages/Account'));
 const Profile = lazy(() => import('./pages/Profile'));
+const MyTickets = lazy(() => import('./pages/MyTickets'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 const Scanner = lazy(() => import('./pages/Scanner'));
 
@@ -48,6 +49,7 @@ export default function App() {
                     <Route path="/checkout" element={<Checkout />} />
                     <Route path="/account" element={<Account />} />
                     <Route path="/profile" element={<Profile />} />
+                    <Route path="/tickets" element={<MyTickets />} />
                     <Route path="/dashboard/*" element={<Dashboard />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/vendors" element={<Vendors />} />

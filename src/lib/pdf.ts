@@ -4,7 +4,7 @@ import { posterSrc } from './data';
 import { longDate, rands } from './format';
 import type { Ticket } from './types';
 
-/** Draws an image into a canvas cropped to the given aspect ratio and returns a JPEG data URL. */
+/** Draws the whole image (never cropped) centred in a black box of the given aspect ratio; returns a JPEG data URL. */
 async function coverJpeg(url: string, ratio: number, widthPx = 520): Promise<string | null> {
   try {
     const res = await fetch(url, { mode: 'cors' });
@@ -15,12 +15,12 @@ async function coverJpeg(url: string, ratio: number, widthPx = 520): Promise<str
     c.width = widthPx;
     c.height = h;
     const ctx = c.getContext('2d')!;
-    const scale = Math.max(widthPx / bmp.width, h / bmp.height);
+    const scale = Math.min(widthPx / bmp.width, h / bmp.height);
     const dw = bmp.width * scale;
     const dh = bmp.height * scale;
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#0B0B0C';
     ctx.fillRect(0, 0, widthPx, h);
-    ctx.drawImage(bmp, (widthPx - dw) / 2, 0, dw, dh);
+    ctx.drawImage(bmp, (widthPx - dw) / 2, (h - dh) / 2, dw, dh);
     return c.toDataURL('image/jpeg', 0.86);
   } catch {
     return null;

@@ -40,9 +40,10 @@ export default function Events() {
           ))}
         </div>
         <h2 className="sr-only">{label} events</h2>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-card-grid>
-          {loading && [0, 1, 2].map((n) => <EventCardSkeleton key={n} />)}
-          {list.map((e, n) => <EventCard key={e.id} event={e} eager={n < 2} />)}
+        {/* Same card and grid as the home page (and the gallery photos there). */}
+        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3" data-card-grid>
+          {loading && [0, 1, 2, 3].map((n) => <EventCardSkeleton key={n} compact />)}
+          {list.map((e, n) => <EventCard key={e.id} event={e} eager={n < 4} compact />)}
         </div>
         {!loading && list.length === 0 && (
           <div className="mt-8 panel p-8">

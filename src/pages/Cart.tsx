@@ -96,10 +96,10 @@ export default function Cart() {
               <p className="font-semibold">Total <span className="text-ink-soft font-normal num">({tickets} {tickets === 1 ? 'ticket' : 'tickets'})</span></p>
               <p className="t-section num">{total === 0 ? 'Free' : randsPlain(total)}</p>
             </div>
-            <p className="mt-3 text-sm text-ink-soft">No payment is taken on this site yet. Checkout issues your tickets without charging you.</p>
+            <p className="mt-3 text-sm text-ink-soft">{user ? 'No payment is taken on this site yet. Checkout issues your tickets without charging you.' : 'You need to sign in to check out, so your tickets are saved to your account. No payment is taken on this site yet.'}</p>
             <div className="even-row [--even-min:11rem] mt-5">
             <button type="button" className="btn btn-primary btn-lg" onClick={() => nav(user ? '/checkout' : '/account?next=/checkout')}>
-              Checkout <ArrowRight className="btn-arrow text-lime" aria-hidden />
+              {user ? 'Checkout' : 'Sign in to check out'} <ArrowRight className="btn-arrow text-lime" aria-hidden />
             </button>
             <button
               type="button"

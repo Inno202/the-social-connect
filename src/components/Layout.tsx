@@ -10,66 +10,73 @@ import { useBackClose } from './ui';
 const NAV = [
   { to: '/', label: 'Home' },
   { to: '/events', label: 'Events' },
+  { to: '/tickets', label: 'Tickets' },
   { to: '/gallery', label: 'Gallery' },
   { to: '/about', label: 'About' },
+  { to: '/vendors', label: 'Become a vendor' },
 ];
 
+/**
+ * Signed out: the nav, then a "Sign in" button on the far right.
+ * Signed in: the nav, then the cart and profile icons on the far right.
+ */
 export function Header() {
   const cart = useCart();
   const count = cart.reduce((n, l) => n + l.qty, 0);
-  const { user, profile } = useAuth();
+  const { user, profile, ready } = useAuth();
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
   useBackClose(open, () => setOpen(false));
   const links = [...NAV, ...(can.dashboard(profile?.role) ? [{ to: '/dashboard', label: 'Dashboard' }] : [])];
-  // The phone menu also names the account and cart, which are icons only in the bar.
-  const mobileLinks = [
-    ...links,
-    { to: '/vendors', label: 'Become a vendor' },
-    { to: user ? '/profile' : '/account', label: user ? 'My tickets' : 'Sign in' },
-    { to: '/cart', label: count ? `Cart (${count})` : 'Cart' },
-  ];
+  // The phone menu also names what is an icon in the bar.
+  const mobileLinks = user ? [...links, { to: '/cart', label: count ? `Cart (${count})` : 'Cart' }, { to: '/profile', label: 'Profile' }] : links;
+  const signInHref = `/account?next=${encodeURIComponent(loc.pathname.startsWith('/account') ? '/tickets' : loc.pathname)}`;
 
   return (
     <header className="bg-ink text-white sticky top-0 z-50">
       <a href="#main" className="skip-link">Skip to content</a>
-      <div className="wrap h-[68px] flex items-center justify-between gap-4">
+      <div className="wrap h-[68px] flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center min-h-[44px] shrink-0" aria-label="MSB Events home">
           <Logo className="h-10 w-auto" />
         </Link>
-        <nav aria-label="Main" className="hidden lg:flex items-center gap-1">
+        <nav aria-label="Main" className="hidden xl:flex items-center">
           {links.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
               end={n.to === '/'}
-              className={({ isActive }) => `px-4 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`}
+              className={({ isActive }) => `px-3 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.12em] whitespace-nowrap ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`}
             >
               {n.label}
             </NavLink>
           ))}
         </nav>
-        <div className="flex items-center gap-1">
-          <NavLink to="/vendors" className="hidden lg:inline-flex btn btn-accent mr-2">Become a vendor</NavLink>
-          <Link to="/cart" className="icon-btn icon-btn-ghost-light relative" aria-label={count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}>
-            <ShoppingBag aria-hidden />
-            {count > 0 && (
-              <span className="absolute top-0.5 right-0 min-w-[20px] h-[20px] px-1 rounded-full bg-lime text-ink text-xs font-bold grid place-items-center num" aria-hidden>
-                {count}
-              </span>
-            )}
-          </Link>
-          <Link to={user ? '/profile' : '/account'} className="icon-btn icon-btn-ghost-light" aria-label={user ? 'My tickets and account' : 'Sign in'}>
-            <UserRound aria-hidden />
-          </Link>
-          <button type="button" className="icon-btn icon-btn-ghost-light lg:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
+        <div className="flex items-center gap-1 shrink-0">
+          {user ? (
+            <>
+              <Link to="/cart" className="icon-btn icon-btn-ghost-light relative" aria-label={count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}>
+                <ShoppingBag aria-hidden />
+                {count > 0 && (
+                  <span className="absolute top-0.5 right-0 min-w-[20px] h-[20px] px-1 rounded-full bg-lime text-ink text-xs font-bold grid place-items-center num" aria-hidden>
+                    {count}
+                  </span>
+                )}
+              </Link>
+              <Link to="/profile" className="icon-btn icon-btn-ghost-light" aria-label="Profile">
+                <UserRound aria-hidden />
+              </Link>
+            </>
+          ) : (
+            ready && <Link to={signInHref} className="btn btn-accent">Sign in</Link>
+          )}
+          <button type="button" className="icon-btn icon-btn-ghost-light xl:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
             {open ? <X aria-hidden /> : <Menu aria-hidden />}
           </button>
         </div>
       </div>
       {open && (
-        <nav id="mobile-nav" aria-label="Main" className="lg:hidden border-t border-white/10 wrap pb-4">
+        <nav id="mobile-nav" aria-label="Main" className="xl:hidden border-t border-white/10 wrap pb-4">
           {mobileLinks.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
               {n.label}
@@ -101,7 +108,7 @@ export function Footer() {
         <div>
           <h2 className="eyebrow text-lime">Explore</h2>
           <ul className="mt-4">
-            {[['/events', 'Events'], ['/gallery', 'Gallery'], ['/about', 'About'], ['/vendors', 'Become a vendor'], ['/profile', 'My tickets']].map(([to, l]) => (
+            {[['/events', 'Events'], ['/tickets', 'My tickets'], ['/gallery', 'Gallery'], ['/about', 'About'], ['/vendors', 'Become a vendor']].map(([to, l]) => (
               <li key={to}><Link to={to} className="inline-flex min-h-[44px] min-w-[44px] items-center text-white/85 hover:text-lime">{l}</Link></li>
             ))}
           </ul>

@@ -22,6 +22,7 @@ export function EventCard({ event, eager = false, compact = false }: { event: Ms
             <Poster event={event} eager={eager} sizes="(min-width: 768px) 25vw, 50vw" />
           </div>
           {event.status === 'cancelled' && <span className="pill absolute top-2 left-2 bg-danger text-white">Cancelled</span>}
+          {past && event.status !== 'cancelled' && <span className="pill absolute top-2 left-2 bg-ink text-white">Past</span>}
         </div>
         <div className="p-3 sm:p-4 flex flex-col flex-1 min-w-0">
           <p className="text-sm font-semibold text-leaf-deep num">{shortDate(event.startsAt)}</p>

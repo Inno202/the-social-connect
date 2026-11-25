@@ -111,7 +111,7 @@ async function rolePages(browser: Browser, email: string, paths: string[], tag: 
 
 test('signed in as each role, at every width', async ({ browser }) => {
   test.setTimeout(240_000);
-  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/users', '/dashboard/activity', '/profile'], 'super admin');
+  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/users', '/dashboard/activity', '/profile', '/tickets'], 'super admin');
   await rolePages(browser, 'admin@msb.test', ['/dashboard/events', '/dashboard/reports', '/dashboard/gallery'], 'admin');
   await rolePages(browser, 'manager@msb.test', ['/dashboard/events', '/dashboard/gallery', '/dashboard/vendors'], 'event manager');
   await rolePages(browser, 'finance@msb.test', ['/dashboard/reports', '/scan'], 'finance');
@@ -167,7 +167,7 @@ test('the phone back button closes an open viewer, dialog or menu before leaving
   await ctx.close();
 });
 
-test('home: event posters are exactly the size of the gallery photos, at every width', async ({ browser }) => {
+test('home and events page: event posters are exactly the size of the gallery photos, at every width', async ({ browser }) => {
   for (const w of WIDTHS) {
     const ctx = await browser.newContext({ viewport: { width: w, height: heightFor(w) } });
     const page = await ctx.newPage();
@@ -182,26 +182,53 @@ test('home: event posters are exactly the size of the gallery photos, at every w
     });
     expect(r.events.length, `@${w}`).toBeGreaterThan(0);
     for (const e of r.events) expect(e, `event poster vs gallery photo @${w}`).toEqual(r.gallery[0]);
+    await page.goto('/events');
+    await settle(page, 1000);
+    const ev = await page.evaluate(() => [...document.querySelectorAll('[data-card-grid] [data-card] > div:first-child')].map((el) => { const b = el.getBoundingClientRect(); return [Math.round(b.width * 10) / 10, Math.round(b.height * 10) / 10]; }));
+    expect(ev.length, `events page @${w}`).toBeGreaterThan(0);
+    for (const e of ev) expect(e, `events page card vs home card @${w}`).toEqual(r.gallery[0]);
     await ctx.close();
   }
 });
 
-test('nav bar: Home, Events, Gallery, About and a Become a vendor button; the phone menu adds it with Sign in and Cart', async ({ browser }) => {
+test('nav bar: Home, Events, Tickets, Gallery, About, Become a vendor; Sign in on the far right until signed in, then cart and profile', async ({ browser }) => {
+  const NAV = ['Home', 'Events', 'Tickets', 'Gallery', 'About', 'Become a vendor'];
   const desk = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const d = await desk.newPage();
   await d.goto('/');
-  await expect(d.getByRole('navigation', { name: 'Main' }).getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About']);
-  await expect(d.getByRole('banner').getByRole('link', { name: 'Become a vendor' })).toBeVisible();
+  await settle(d, 800);
   const main = d.getByRole('navigation', { name: 'Main' });
+  await expect(main.getByRole('link')).toHaveText(NAV);
   await expect(main.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  const banner = d.getByRole('banner');
+  const signIn = banner.getByRole('link', { name: 'Sign in' });
+  await expect(signIn).toBeVisible();
+  await expect(banner.getByRole('link', { name: /^Cart/ })).toHaveCount(0);
+  await expect(banner.getByRole('link', { name: 'Profile' })).toHaveCount(0);
+  // Sign in sits on the far right of the bar.
+  const sb = (await signIn.boundingBox())!;
+  expect(1280 - (sb.x + sb.width)).toBeLessThan(40);
   await d.goto('/events/spring-blow-2026');
   await expect(main.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'page');
-  await expect(main.getByRole('link', { name: 'Home', exact: true })).not.toHaveAttribute('aria-current', 'page');
+  await signInPage(d, 'manager@msb.test');
+  await d.goto('/');
+  await settle(d, 800);
+  await expect(banner.getByRole('link', { name: 'Sign in' })).toHaveCount(0);
+  await expect(banner.getByRole('link', { name: /^Cart/ })).toBeVisible();
+  await expect(banner.getByRole('link', { name: 'Profile' })).toBeVisible();
+  await expect(main.getByRole('link')).toHaveText([...NAV, 'Dashboard']);
+  await checkLayout(d, 'header signed in @1280');
   await desk.close();
   const phone = await browser.newContext({ viewport: { width: 360, height: 740 } });
   const p = await phone.newPage();
   await p.goto('/');
+  await settle(p, 800);
+  await expect(p.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();
   await p.getByRole('button', { name: 'Open menu' }).click();
-  await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About', 'Become a vendor', 'Sign in', 'Cart']);
+  await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(NAV);
   await phone.close();
 });
+
+async function signInPage(page: import('@playwright/test').Page, email: string) {
+  await signIn(page, email, undefined, '/tickets');
+}

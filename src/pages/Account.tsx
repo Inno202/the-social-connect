@@ -7,7 +7,7 @@ import { firebaseReady } from '../lib/firebase';
 import { useTitle } from '../lib/useTitle';
 
 function safeNext(n: string | null) {
-  return n && /^\/[a-z0-9/_-]*$/i.test(n) && !n.startsWith('//') ? n : '/profile';
+  return n && /^\/[a-z0-9/_-]*$/i.test(n) && !n.startsWith('//') ? n : '/tickets';
 }
 
 /** Google's own mark: their branding rules ask for it on "Continue with Google". */

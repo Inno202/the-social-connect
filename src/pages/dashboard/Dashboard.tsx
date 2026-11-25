@@ -28,7 +28,7 @@ export default function Dashboard() {
           <p className="mt-4 t-lead mx-auto">The dashboard is for MSB Events staff.</p>
           <div className="even-row [--even-min:10rem] mt-8">
             <Link to="/" className="btn btn-outline">Back to home</Link>
-            <Link to="/profile" className="btn btn-primary">Go to my tickets</Link>
+            <Link to="/tickets" className="btn btn-primary">Go to my tickets</Link>
           </div>
         </div>
       </div>

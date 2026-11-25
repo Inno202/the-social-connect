@@ -137,6 +137,15 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   await page.locator('main ul li button', { hasText: 'Seat 2 of 4' }).click();
   const seat = page.locator('dialog[open]');
   await expect(seat.getByText('Thabo Guest')).toBeVisible();
+  // The ticket opens as a compact card, not a full-screen sheet.
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(400);
+  const tb = (await seat.boundingBox())!;
+  expect(tb.height, 'ticket dialog height on a 390x844 phone').toBeLessThan(700);
+  expect(tb.x).toBeGreaterThanOrEqual(15.5);
+  await shot(page, 'ticket-open-phone', false);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForTimeout(300);
   await seat.getByRole('button', { name: 'Change name' }).click();
   await seat.getByLabel('Name on this ticket').fill('Thabo Mokoena');
   await seat.getByRole('button', { name: 'Save' }).click();

@@ -60,6 +60,6 @@ ok((await r.textContent()).includes('Already scanned'), 'offline: second scan of
 await door.setOffline(false);
 await s.waitForTimeout(4000);
 await buyer.setOffline(false);
-await p.goto(`${BASE}/profile`);
+await p.goto(`${BASE}/tickets`);
 await p.getByText('Used').first().waitFor({ timeout: 15000 }).then(() => ok(true, 'scan synced after signal returned (ticket shows Used)'), () => ok(false, 'scan synced after signal returned'));
 await b.close();

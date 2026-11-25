@@ -17,8 +17,8 @@ export function textOn(hex: string): string {
  * event's poster colour carries the name. `sizes` tells the browser which srcset width to fetch.
  */
 export function Poster({
-  event, sizes = '(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw', className = '', eager = false,
-}: { event: Pick<MsbEvent, 'poster' | 'posterColor' | 'title' | 'shortTitle'>; sizes?: string; className?: string; eager?: boolean }) {
+  event, sizes = '(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw', className = '', eager = false, fit = 'cover',
+}: { event: Pick<MsbEvent, 'poster' | 'posterColor' | 'title' | 'shortTitle'>; sizes?: string; className?: string; eager?: boolean; fit?: 'cover' | 'contain' }) {
   const img = posterImg(event.poster);
   if (!img) {
     return (
@@ -39,7 +39,7 @@ export function Poster({
       alt={`${event.title} poster`}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
-      className={`w-full h-full object-cover object-top ${className}`}
+      className={`w-full h-full ${fit === 'contain' ? 'object-contain object-center' : 'object-cover object-top'} ${className}`}
     />
   );
 }
