@@ -269,3 +269,35 @@ describe('staff content', () => {
     await assertFails(deleteDoc(doc(as('super'), 'activity', ref.id)));
   });
 });
+
+describe('vendor applications', () => {
+  const app = (over: Record<string, unknown> = {}) => ({
+    businessName: 'Kasi Kota Kitchen', contactName: 'Thabo M', email: 'thabo@example.com', phone: '+27 82 000 0000', category: 'food',
+    description: 'Kotas, chips and cold drinks from Thabong.', events: ['ev'], anyEvent: false, needsPower: true, link: '', consent: true,
+    status: 'new', createdAt: serverTimestamp(), uid: null, ...over,
+  });
+  it('anyone can apply without an account, and a signed-in person only as themselves', async () => {
+    await assertSucceeds(addDoc(collection(anon(), 'vendorApplications'), app()));
+    await assertSucceeds(addDoc(collection(as('alice'), 'vendorApplications'), app({ uid: 'alice' })));
+    await assertFails(addDoc(collection(as('alice'), 'vendorApplications'), app({ uid: 'bob' })));
+  });
+  it('rejects forged status, missing consent, unsafe links, bad email and extra fields', async () => {
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ status: 'approved' })));
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ consent: false })));
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ link: 'javascript:alert(1)' })));
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ email: 'not-an-email' })));
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ events: [], anyEvent: false })));
+    await assertFails(addDoc(collection(anon(), 'vendorApplications'), app({ priority: 'high' })));
+  });
+  it('only event staff read applications and decide on them', async () => {
+    const ref = await addDoc(collection(anon(), 'vendorApplications'), app());
+    await assertFails(getDoc(doc(anon(), 'vendorApplications', ref.id)));
+    await assertFails(getDoc(doc(as('alice'), 'vendorApplications', ref.id)));
+    await assertFails(getDoc(doc(as('finance'), 'vendorApplications', ref.id)));
+    await assertSucceeds(getDoc(doc(as('manager'), 'vendorApplications', ref.id)));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'admin', reviewedAt: serverTimestamp() }));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp(), businessName: 'X' }));
+    await assertSucceeds(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp() }));
+  });
+});
+

@@ -143,6 +143,7 @@ export const can = {
   events: (r?: Role) => r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'EVENT_MANAGER',
   reports: (r?: Role) => r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'EVENT_MANAGER' || r === 'FINANCE',
   gallery: (r?: Role) => r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'EVENT_MANAGER',
+  vendors: (r?: Role) => r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'EVENT_MANAGER',
   users: (r?: Role) => r === 'SUPER_ADMIN',
   activity: (r?: Role) => r === 'SUPER_ADMIN',
   scan: (r?: Role) => r === 'SUPER_ADMIN' || r === 'ADMIN' || r === 'EVENT_MANAGER' || r === 'TICKET_SCANNER',

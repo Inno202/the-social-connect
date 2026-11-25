@@ -222,6 +222,37 @@ service cloud.firestore {
       allow delete: if eventStaff();
     }
 
+    // ---------- Vendor applications ----------
+    // Anyone may apply (no account needed); only event staff can read or decide.
+    function validVendor(d) {
+      return d.keys().hasOnly(['businessName', 'contactName', 'email', 'phone', 'category', 'description', 'events', 'anyEvent',
+          'needsPower', 'link', 'consent', 'status', 'createdAt', 'uid'])
+        && str(d.businessName, 2, 100) && str(d.contactName, 2, 80)
+        && d.email is string && d.email.size() <= 120 && d.email.matches('^[^@ ]+@[^@ ]+[.][^@ ]+$')
+        && d.phone is string && d.phone.matches('^[0-9 +()-]{7,20}$')
+        && d.category in ['food', 'drinks', 'hubbly', 'merchandise', 'clothing', 'beauty', 'services', 'other']
+        && str(d.description, 10, 1000)
+        && d.events is list && d.events.size() <= 12
+        && d.anyEvent is bool && (d.anyEvent == true || d.events.size() > 0)
+        && d.needsPower is bool
+        && d.link is string && (d.link == '' || d.link.matches('^https://[^ ]{3,200}$'))
+        && d.consent == true
+        && d.status == 'new'
+        && d.createdAt == request.time
+        && (d.uid == null || (signedIn() && d.uid == request.auth.uid));
+    }
+
+    match /vendorApplications/{id} {
+      allow create: if validVendor(request.resource.data);
+      allow read: if eventStaff();
+      allow update: if eventStaff()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt'])
+        && request.resource.data.status in ['new', 'approved', 'declined']
+        && request.resource.data.reviewedBy == request.auth.uid
+        && request.resource.data.reviewedAt == request.time;
+      allow delete: if hasRole(['SUPER_ADMIN', 'ADMIN']);
+    }
+
     // ---------- Activity log (append-only, super admin reads) ----------
     match /activity/{id} {
       allow read: if hasRole(['SUPER_ADMIN']);

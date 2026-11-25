@@ -26,6 +26,7 @@ export function Header() {
   // The phone menu also names the account and cart, which are icons only in the bar.
   const mobileLinks = [
     ...links,
+    { to: '/vendors', label: 'Become a vendor' },
     { to: user ? '/profile' : '/account', label: user ? 'My tickets' : 'Sign in' },
     { to: '/cart', label: count ? `Cart (${count})` : 'Cart' },
   ];
@@ -37,7 +38,7 @@ export function Header() {
         <Link to="/" className="flex items-center min-h-[44px] shrink-0" aria-label="MSB Events home">
           <Logo className="h-10 w-auto" />
         </Link>
-        <nav aria-label="Main" className="hidden md:flex items-center gap-1">
+        <nav aria-label="Main" className="hidden lg:flex items-center gap-1">
           {links.map((n) => (
             <NavLink
               key={n.to}
@@ -50,6 +51,7 @@ export function Header() {
           ))}
         </nav>
         <div className="flex items-center gap-1">
+          <NavLink to="/vendors" className="hidden lg:inline-flex btn btn-accent mr-2">Become a vendor</NavLink>
           <Link to="/cart" className="icon-btn icon-btn-ghost-light relative" aria-label={count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}>
             <ShoppingBag aria-hidden />
             {count > 0 && (
@@ -61,13 +63,13 @@ export function Header() {
           <Link to={user ? '/profile' : '/account'} className="icon-btn icon-btn-ghost-light" aria-label={user ? 'My tickets and account' : 'Sign in'}>
             <UserRound aria-hidden />
           </Link>
-          <button type="button" className="icon-btn icon-btn-ghost-light md:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
+          <button type="button" className="icon-btn icon-btn-ghost-light lg:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
             {open ? <X aria-hidden /> : <Menu aria-hidden />}
           </button>
         </div>
       </div>
       {open && (
-        <nav id="mobile-nav" aria-label="Main" className="md:hidden border-t border-white/10 wrap pb-4">
+        <nav id="mobile-nav" aria-label="Main" className="lg:hidden border-t border-white/10 wrap pb-4">
           {mobileLinks.map((n) => (
             <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
               {n.label}
@@ -99,7 +101,7 @@ export function Footer() {
         <div>
           <h2 className="eyebrow text-lime">Explore</h2>
           <ul className="mt-4">
-            {[['/events', 'Events'], ['/gallery', 'Gallery'], ['/about', 'About'], ['/profile', 'My tickets']].map(([to, l]) => (
+            {[['/events', 'Events'], ['/gallery', 'Gallery'], ['/about', 'About'], ['/vendors', 'Become a vendor'], ['/profile', 'My tickets']].map(([to, l]) => (
               <li key={to}><Link to={to} className="inline-flex min-h-[44px] min-w-[44px] items-center text-white/85 hover:text-lime">{l}</Link></li>
             ))}
           </ul>

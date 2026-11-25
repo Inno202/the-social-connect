@@ -6,6 +6,7 @@ import { EventCard, EventCardSkeleton } from '../components/EventCard';
 import { CalendarRow } from '../components/CalendarRow';
 import { useEvents, useGallery, posterImg } from '../lib/data';
 import { filterEvents } from '../lib/eventState';
+import { longDate } from '../lib/format';
 import { CALENDAR_2026, HERO_SLIDES, PARTNERS } from '../data/site';
 import { useTitle } from '../lib/useTitle';
 
@@ -29,6 +30,8 @@ export default function Home() {
   const { events, loading } = useEvents();
   const gallery = useGallery();
   const upcoming = useMemo(() => (events ? filterEvents(events, 'upcoming') : []), [events]);
+  const summer = events?.find((e) => e.id === 'summer-blow-2026');
+  const summerImg = posterImg(summer?.poster || '/posters/summer-blow-2026');
   const calendar = useMemo(
     () => CALENDAR_2026.map((id) => events?.find((e) => e.id === id)).filter((e): e is NonNullable<typeof e> => Boolean(e)),
     [events],
@@ -54,18 +57,27 @@ export default function Home() {
         {calendar.length > 0 ? <CalendarRow events={calendar} /> : <div className="h-40 rounded-[var(--radius-xl)] bg-mist animate-pulse" />}
       </section>
 
-      <section className="wrap pt-20 md:pt-28" aria-labelledby="made-in">
-        <div className="band p-8 sm:p-12 md:p-16 grid gap-8 md:grid-cols-[1.2fr_1fr] items-end">
-          <h2 id="made-in" className="t-section">
-            Made in <span className="text-lime">Matjhabeng</span>
-          </h2>
-          <div className="min-w-0">
-            <p className="text-white/85 text-lg md:text-xl max-w-[30rem]">
-              MSB Events is the team from Welkom in the Free State behind the Blow festivals, the MSB Fun Walk & Family Day and
-              MSB Comedy Night. 2026 marks more than 5 years of MSB Events.
+      {/* Feature: the next big event. Only the name and date are known so far. */}
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="summer-blow">
+        <div className="band p-6 sm:p-10 md:p-12 grid gap-8 md:grid-cols-[1.3fr_1fr] items-center [--pad:1rem]">
+          <div className="min-w-0 order-2 md:order-1">
+            <p className="eyebrow text-lime">{summer ? longDate(summer.startsAt) : 'Sat 26 December 2026'}</p>
+            <h2 id="summer-blow" className="t-section mt-3">
+              Matjhabeng <span className="text-lime">Summer Blow</span>
+            </h2>
+            <p className="mt-4 text-white/85 text-lg md:text-xl max-w-[30rem]">
+              Summer Blow is back on 26 December 2026. Venue, times, line-up and tickets will be announced here first.
             </p>
-            <Link to="/about" className="btn btn-accent mt-6">About MSB Events <ArrowRight className="btn-arrow" aria-hidden /></Link>
+            <div className="even-row [--even-min:11rem] mt-6">
+              <Link to="/events/summer-blow-2026" className="btn btn-accent">See Summer Blow <ArrowRight className="btn-arrow" aria-hidden /></Link>
+              <Link to="/vendors" className="btn btn-outline-light">Become a vendor</Link>
+            </div>
           </div>
+          <Link to="/events/summer-blow-2026" className="order-1 md:order-2 block rounded-[var(--radius-xl)] bg-white p-4 group" aria-label="Matjhabeng Summer Blow 2026">
+            <div className="aspect-square r-in overflow-hidden">
+              {summerImg && <img src={summerImg.src} srcSet={summerImg.srcSet} sizes="(min-width: 768px) 400px, 100vw" width={summerImg.width} height={summerImg.height} alt="Matjhabeng Summer Blow logo" loading="lazy" decoding="async" className="photo-zoom w-full h-full object-contain" />}
+            </div>
+          </Link>
         </div>
       </section>
 

@@ -241,11 +241,11 @@ test('door scanner: admit with the camera, refuse the second scan, one camera on
 
 test('staff roles see only their own areas', async ({ browser }) => {
   const cases: [string, string[], string[]][] = [
-    ['super@msb.test', ['Events', 'Reports', 'Gallery', 'Users and roles', 'Activity'], []],
-    ['admin@msb.test', ['Events', 'Reports', 'Gallery'], ['Users and roles', 'Activity']],
-    ['manager@msb.test', ['Events', 'Reports', 'Gallery'], ['Users and roles', 'Activity']],
-    ['finance@msb.test', ['Reports'], ['Events', 'Gallery', 'Users and roles']],
-    ['scanner@msb.test', [], ['Events', 'Reports', 'Gallery']],
+    ['super@msb.test', ['Events', 'Reports', 'Gallery', 'Vendors', 'Users and roles', 'Activity'], []],
+    ['admin@msb.test', ['Events', 'Reports', 'Gallery', 'Vendors'], ['Users and roles', 'Activity']],
+    ['manager@msb.test', ['Events', 'Reports', 'Gallery', 'Vendors'], ['Users and roles', 'Activity']],
+    ['finance@msb.test', ['Reports'], ['Events', 'Gallery', 'Vendors', 'Users and roles']],
+    ['scanner@msb.test', [], ['Events', 'Reports', 'Gallery', 'Vendors']],
   ];
   for (const [email, yes, no] of cases) {
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
@@ -319,3 +319,48 @@ test('event staff can duplicate an event and add a ticket type in the staff dial
   await expect(page.getByText('Test Activation (demo event) (copy)')).toBeVisible();
   await ctx.close();
 });
+
+test('a vendor applies without an account; an event manager sees and approves it', async ({ browser }) => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  const page = await ctx.newPage();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Open menu' }).click();
+  await page.locator('#mobile-nav').getByRole('link', { name: 'Become a vendor' }).click();
+  await expect(page).toHaveURL(/\/vendors$/);
+  await settle(page, 800);
+  // Empty form: errors in words, focus on the first one.
+  await page.getByRole('button', { name: 'Send application' }).click();
+  await expect(page.getByText('Enter your business or stall name.')).toBeVisible();
+  await expect(page.getByLabel('Business or stall name')).toBeFocused();
+  await page.getByLabel('Business or stall name').fill('Kasi Kota Kitchen');
+  await page.getByLabel('Contact person').fill('Thabo Mokoena');
+  await page.getByLabel('Phone').fill('082 123 4567');
+  await page.getByLabel('Email').fill('thabo.vendor@example.com');
+  await page.getByLabel('What you sell').selectOption('food');
+  await page.getByLabel('Tell us about it').fill('Kotas, chips and cold drinks. 3 x 3 m gazebo.');
+  await page.getByRole('radio', { name: 'Yes' }).click();
+  await page.getByLabel(/MSB Test Night/).check();
+  await page.getByLabel(/MSB Events may keep these details/).check();
+  await checkLayout(page, 'vendor form filled @390');
+  await shot(page, 'vendors-form-phone');
+  await page.getByRole('button', { name: 'Send application' }).click();
+  await expect(page.getByRole('heading', { name: /Application sent/i })).toBeVisible();
+  await shot(page, 'vendors-sent-phone', false);
+  await ctx.close();
+
+  const staff = await browser.newContext({ viewport: { width: 1280, height: 900 }, deviceScaleFactor: 2 });
+  const s = await staff.newPage();
+  await signIn(s, 'manager@msb.test', undefined, '/dashboard/vendors');
+  await s.goto('/dashboard/vendors');
+  const card = s.locator('li', { hasText: 'Kasi Kota Kitchen' });
+  await expect(card).toBeVisible();
+  await expect(card).toContainText('MSB Test Night (demo event)');
+  await expect(card).toContainText('Needed');
+  await shot(s, 'dashboard-vendors-desktop', false);
+  await card.getByRole('button', { name: 'Approve' }).click();
+  await expect(s.getByText('Kasi Kota Kitchen: approved.')).toBeVisible();
+  await s.getByRole('button', { name: /^Approved/ }).click();
+  await expect(s.locator('li', { hasText: 'Kasi Kota Kitchen' })).toContainText('Approved');
+  await staff.close();
+});
+

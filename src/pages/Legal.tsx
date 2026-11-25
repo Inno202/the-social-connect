@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { PageHero } from '../components/Layout';
 import { useTitle } from '../lib/useTitle';
 
-export const LEGAL_UPDATED = '24 November 2026';
+export const LEGAL_UPDATED = '25 November 2026';
 
 /** Visible marker for details MSB Events still has to supply before launch. */
 function ToAdd({ children }: { children: ReactNode }) {
@@ -62,6 +62,12 @@ export function Terms() {
         limits your rights under the Consumer Protection Act.
       </p>
 
+      <h2>Vendors</h2>
+      <p>
+        Applying on the Become a vendor page does not reserve a space. MSB Events contacts vendors directly to confirm stall space, fees and
+        set-up for each event.
+      </p>
+
       <h2>Age, alcohol and safety</h2>
       <ul>
         <li>Events marked 18+ have no entry for under 18s, and you may be asked to prove your age at the gate.</li>
@@ -97,6 +103,7 @@ export function Privacy() {
         <li><strong>Your account:</strong> your name and email address. If you sign up with a password, it is stored only by Google Firebase Authentication in hashed form; we never see it. If you sign in with Google, Google shares your name and email address with us (we do not use your Google photo or contacts).</li>
         <li><strong>Guest names:</strong> names you enter for the seats of a VIP table are stored on those tickets and shown to door staff when the ticket is scanned.</li>
         <li><strong>Your tickets and orders:</strong> the event, ticket type, quantity, the name on the ticket (your account name), the date issued, and whether and when the ticket was scanned at the door.</li>
+        <li><strong>Vendor applications:</strong> if you apply to sell at an event, your business name, contact person, phone number, email, what you sell, the events you chose, whether you need electricity and any link you give. You do not need an account to apply.</li>
         <li><strong>Staff:</strong> for staff accounts, their role and a log of actions taken in the dashboard (for example editing an event or scanning a ticket).</li>
       </ul>
       <p>We do not collect card or bank details: no payments are taken on this site. We do not use analytics, advertising or tracking tools.</p>
@@ -106,6 +113,7 @@ export function Privacy() {
         <li>To issue your tickets, show them to you, and check them at the gate.</li>
         <li>To limit how many tickets one account can hold and to stop forged or copied tickets.</li>
         <li>To give event staff attendee lists and counts for the events they run.</li>
+        <li>To contact vendors about stall space, fees and set-up. Only MSB event staff can see applications.</li>
       </ul>
 
       <h2>Who handles it for us</h2>
@@ -123,7 +131,8 @@ export function Privacy() {
       <h2>How long we keep it</h2>
       <p>
         Your account is kept until you delete it. Ticket and order records are kept after an event for our event records and to answer questions
-        about entry, for <ToAdd>MSB Events to set a retention period</ToAdd>.
+        about entry, for <ToAdd>MSB Events to set a retention period</ToAdd>. Vendor applications are kept while MSB Events plans its events and
+        deleted on request.
       </p>
 
       <h2>Your rights</h2>

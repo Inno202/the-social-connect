@@ -9,6 +9,7 @@ import EventPage from './pages/EventPage';
 import Gallery from './pages/Gallery';
 import { Terms, Privacy, Cookies } from './pages/Legal';
 import NotFound from './pages/NotFound';
+import Vendors from './pages/Vendors';
 
 const Tickets = lazy(() => import('./pages/Tickets'));
 const Cart = lazy(() => import('./pages/Cart'));
@@ -49,6 +50,7 @@ export default function App() {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/dashboard/*" element={<Dashboard />} />
                     <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/vendors" element={<Vendors />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/cookies" element={<Cookies />} />

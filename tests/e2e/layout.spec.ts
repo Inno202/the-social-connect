@@ -12,6 +12,7 @@ const PUBLIC = [
   ['/events/demo-test-night-2026/tickets', 'tickets'],
   ['/gallery', 'gallery'],
   ['/about', 'about'],
+  ['/vendors', 'vendors'],
   ['/terms', 'terms'],
   ['/privacy', 'privacy'],
   ['/cookies', 'cookies'],
@@ -21,7 +22,7 @@ const PUBLIC = [
   ['/no-such-page', 'not-found'],
 ] as const;
 
-const SHOT_PAGES = new Set(['home', 'events', 'event-page', 'tickets', 'gallery', 'about', 'terms', 'sign-in', 'sign-up', 'not-found']);
+const SHOT_PAGES = new Set(['home', 'events', 'event-page', 'tickets', 'gallery', 'about', 'vendors', 'terms', 'sign-in', 'sign-up', 'not-found']);
 
 test.describe.configure({ mode: 'serial' });
 
@@ -110,9 +111,9 @@ async function rolePages(browser: Browser, email: string, paths: string[], tag: 
 
 test('signed in as each role, at every width', async ({ browser }) => {
   test.setTimeout(240_000);
-  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/users', '/dashboard/activity', '/profile'], 'super admin');
+  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/users', '/dashboard/activity', '/profile'], 'super admin');
   await rolePages(browser, 'admin@msb.test', ['/dashboard/events', '/dashboard/reports', '/dashboard/gallery'], 'admin');
-  await rolePages(browser, 'manager@msb.test', ['/dashboard/events', '/dashboard/gallery'], 'event manager');
+  await rolePages(browser, 'manager@msb.test', ['/dashboard/events', '/dashboard/gallery', '/dashboard/vendors'], 'event manager');
   await rolePages(browser, 'finance@msb.test', ['/dashboard/reports', '/scan'], 'finance');
   await rolePages(browser, 'scanner@msb.test', ['/dashboard', '/scan'], 'scanner');
 });
@@ -185,11 +186,12 @@ test('home: event posters are exactly the size of the gallery photos, at every w
   }
 });
 
-test('nav bar: Home, Events, Gallery, About; the phone menu adds My tickets / Sign in and Cart', async ({ browser }) => {
+test('nav bar: Home, Events, Gallery, About and a Become a vendor button; the phone menu adds it with Sign in and Cart', async ({ browser }) => {
   const desk = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const d = await desk.newPage();
   await d.goto('/');
   await expect(d.getByRole('navigation', { name: 'Main' }).getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About']);
+  await expect(d.getByRole('banner').getByRole('link', { name: 'Become a vendor' })).toBeVisible();
   const main = d.getByRole('navigation', { name: 'Main' });
   await expect(main.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
   await d.goto('/events/spring-blow-2026');
@@ -200,6 +202,6 @@ test('nav bar: Home, Events, Gallery, About; the phone menu adds My tickets / Si
   const p = await phone.newPage();
   await p.goto('/');
   await p.getByRole('button', { name: 'Open menu' }).click();
-  await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About', 'Sign in', 'Cart']);
+  await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About', 'Become a vendor', 'Sign in', 'Cart']);
   await phone.close();
 });

@@ -17,4 +17,4 @@ export function render(url: string): string {
   );
 }
 
-export const PUBLIC_ROUTES = ['/', '/about', '/events', '/gallery', '/terms', '/privacy', '/cookies', ...STATIC_EVENTS.map((e) => `/events/${e.id}`)];
+export const PUBLIC_ROUTES = ['/', '/about', '/events', '/gallery', '/vendors', '/terms', '/privacy', '/cookies', ...STATIC_EVENTS.map((e) => `/events/${e.id}`)];

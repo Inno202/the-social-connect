@@ -10,6 +10,7 @@ const EventsAdmin = lazy(() => import('./EventsAdmin'));
 const EventEditor = lazy(() => import('./EventEditor'));
 const Reports = lazy(() => import('./Reports'));
 const GalleryAdmin = lazy(() => import('./GalleryAdmin'));
+const VendorsAdmin = lazy(() => import('./VendorsAdmin'));
 const UsersAdmin = lazy(() => import('./UsersAdmin'));
 const ActivityLog = lazy(() => import('./ActivityLog'));
 
@@ -37,6 +38,7 @@ export default function Dashboard() {
     { to: 'events', label: 'Events', ok: can.events(role) },
     { to: 'reports', label: 'Reports', ok: can.reports(role) },
     { to: 'gallery', label: 'Gallery', ok: can.gallery(role) },
+    { to: 'vendors', label: 'Vendors', ok: can.vendors(role) },
     { to: 'users', label: 'Users and roles', ok: can.users(role) },
     { to: 'activity', label: 'Activity', ok: can.activity(role) },
   ].filter((t) => t.ok);
@@ -74,6 +76,7 @@ export default function Dashboard() {
             {can.events(role) && <Route path="events/:id" element={<EventEditor />} />}
             {can.reports(role) && <Route path="reports" element={<Reports />} />}
             {can.gallery(role) && <Route path="gallery" element={<GalleryAdmin />} />}
+            {can.vendors(role) && <Route path="vendors" element={<VendorsAdmin />} />}
             {can.users(role) && <Route path="users" element={<UsersAdmin />} />}
             {can.activity(role) && <Route path="activity" element={<ActivityLog />} />}
             <Route path="*" element={<p className="text-ink-soft">This area is not part of your role.</p>} />
