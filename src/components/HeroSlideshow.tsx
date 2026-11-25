@@ -21,7 +21,7 @@ export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: stri
   return (
     <section aria-roledescription="carousel" aria-label="MSB Events photos" className="px-3 sm:px-4 pt-3 sm:pt-4">
       <h1 className="sr-only">MSB Events, Matjhabeng</h1>
-      <div className="relative band h-[56vh] min-h-[320px] max-h-[720px]">
+      <div className="relative band h-[calc(100svh-272px)] min-h-[340px] max-h-[820px]">
         {slides.map((s, k) => {
           const near = k === i || k === (i + 1) % n || k === (i - 1 + n) % n;
           const img = heroImg(s.src);
