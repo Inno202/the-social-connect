@@ -49,7 +49,7 @@ export default function Home() {
     <>
       <HeroSlideshow slides={HERO_SLIDES} />
 
-      <section className="wrap pt-20 md:pt-28" aria-labelledby="upcoming">
+      <section className="wrap pt-10 md:pt-12" aria-labelledby="upcoming">
         <SectionHead id="upcoming" title="Upcoming" accent="events" to="/events" linkLabel="All events" />
         {/* Same grid as the gallery below: the posters are exactly the size of the gallery photos. */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-card-grid>

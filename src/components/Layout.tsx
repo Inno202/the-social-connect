@@ -157,13 +157,13 @@ export function PageHero({ title, photo = '/photos/festival-crowd-night-green', 
   const img = posterImg(photo);
   return (
     <div className="px-3 sm:px-4 pt-3 sm:pt-4">
-      <div className="band relative isolate px-6 sm:px-10 pt-32 sm:pt-44 pb-8 sm:pb-10">
+      <div className="band relative isolate flex flex-col justify-end px-6 sm:px-10 pb-8 sm:pb-10 h-[calc(100svh-230px)] min-h-[300px] max-h-[760px]">
         {img && (
           <img src={img.src} srcSet={img.srcSet} sizes="100vw" width={img.width} height={img.height} alt="" aria-hidden
             className="absolute inset-0 -z-10 w-full h-full object-cover" style={{ objectPosition: position }} decoding="async" {...{ fetchpriority: 'high' }} />
         )}
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/70 to-ink/25" aria-hidden />
-        <h1 className="t-hero hero-rise max-w-7xl mx-auto">
+        <h1 className="t-hero hero-rise w-full max-w-7xl mx-auto">
           <span className="block">{words.join(' ')}{words.length ? ' ' : ''}<span className="text-lime">{last}</span></span>
         </h1>
       </div>

@@ -21,7 +21,7 @@ export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: stri
   return (
     <section aria-roledescription="carousel" aria-label="MSB Events photos" className="px-3 sm:px-4 pt-3 sm:pt-4">
       <h1 className="sr-only">MSB Events, Matjhabeng</h1>
-      <div className="relative band h-[calc(100svh-272px)] min-h-[340px] max-h-[820px]">
+      <div className="relative band h-[calc(100svh-200px)] min-h-[340px] max-h-[860px]">
         {slides.map((s, k) => {
           const near = k === i || k === (i + 1) % n || k === (i - 1 + n) % n;
           const img = heroImg(s.src);
@@ -45,17 +45,16 @@ export function HeroSlideshow({ slides, interval = 6000 }: { slides: { src: stri
             </div>
           );
         })}
-        <div className="absolute bottom-3 inset-x-3 flex items-center justify-between gap-2">
-          <button type="button" onClick={() => setPlaying(!playing)} className="icon-btn icon-btn-glass" aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}>
+        {/* One pill: slide dots, then play / pause at the end. */}
+        <div className="absolute bottom-3 right-3 flex items-center rounded-full bg-ink/60 backdrop-blur-sm px-1">
+          {slides.map((s, k) => (
+            <button key={s.src} type="button" onClick={() => setI(k)} className="icon-btn icon-btn-ghost-light" aria-label={`Show photo ${k + 1}`} aria-current={k === i}>
+              <span className="dot" data-on={k === i} aria-hidden />
+            </button>
+          ))}
+          <button type="button" onClick={() => setPlaying(!playing)} className="icon-btn icon-btn-ghost-light" aria-label={playing ? 'Pause slideshow' : 'Play slideshow'}>
             {playing ? <Pause aria-hidden /> : <Play aria-hidden />}
           </button>
-          <div className="flex items-center rounded-full bg-ink/70 px-1">
-            {slides.map((s, k) => (
-              <button key={s.src} type="button" onClick={() => setI(k)} className="icon-btn icon-btn-ghost-light" aria-label={`Show photo ${k + 1}`} aria-current={k === i}>
-                <span className="dot" data-on={k === i} aria-hidden />
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </section>
