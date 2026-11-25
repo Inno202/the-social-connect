@@ -96,7 +96,7 @@ export async function checkLayout(page: Page, label: string) {
       if (!vis(f)) return;
       const p = f.parentElement!;
       const pw = p.getBoundingClientRect().width - parseFloat(getComputedStyle(p).paddingLeft) - parseFloat(getComputedStyle(p).paddingRight);
-      if (p.classList.contains('relative') || getComputedStyle(p).display === 'flex') return;
+      if (p.classList.contains('relative') || /flex|grid/.test(getComputedStyle(p).display)) return;
       if (f.getBoundingClientRect().width < pw - 1.5) out.field.push(`${name(f)} narrower than its column`);
     });
     return out;

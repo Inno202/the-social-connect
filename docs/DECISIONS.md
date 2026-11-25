@@ -47,3 +47,28 @@ Choices made while building, so they can be changed later. Everything visual is 
 - **No database indexes needed:** ticket lists are sorted in the browser and ticket types are read per event, so a fresh Firestore works after publishing the rules.
 - **Hosting:** GitHub Pages at `inno202.github.io/<repository>/`, published only by running the workflow by hand. The base path follows the repository name, so renaming to `msb-events` keeps working.
 - **Live content:** the 9 events and the poster gallery are loaded with the dashboard's "Load MSB events" button, not with a script, so no admin keys are ever needed.
+
+## Responsive system (25 November 2026)
+
+The Bokamoso rules applied across the whole site. Everything shared is in `src/index.css`.
+
+- **Root font:** `clamp(87.5%, calc(1.2vw + 62.5%), 100%)`. At the default text size this is exactly `clamp(14px, 1.2vw + 10px, 16px)`; written in % so a phone set to larger text still makes the site bigger (the px version would ignore that setting).
+- **Readable floor:** with the scaled root, Tailwind's `text-sm` would be about 12.5px on a 360px phone, which breaks "nothing people read below 14px". `text-sm` is therefore `max(14px, .875rem)` and `text-xs` is `max(12px, .75rem)`; button text and form labels have the same floor. `text-xs` is used only for eyebrow labels (decoration); badges such as Sold out, Valid and Past moved up to `text-sm` because they carry information.
+- **Fields:** `font-size: max(16px, 1rem)` so iPhones never zoom in, while still growing with the phone's text setting.
+- **Buttons:** `.btn` plus one variant: `btn-primary`, `btn-accent` (lime; was `btn-lime`), `btn-outline`, `btn-ghost` (quiet actions like "Forgot password"), `btn-danger`, `btn-danger-solid`, and on dark: `btn-light`, `btn-outline-light`, `btn-ghost-light`. Filters, tabs and segmented toggles use `btn-chip` / `btn-chip-light` (48px tall, black with lime when on). Medium weight (500).
+- **Icon buttons:** `.icon-btn` (44 x 44) plus `icon-btn-dark`, `-ghost`, `-ghost-light`, `-glass` (on photos), `-light`, `-danger`. The slideshow dots are 44px icon buttons with a small dot inside.
+- **Icons in text buttons removed** (Download, Plus, Upload, scanner icon, external-link icon); only the forward arrow remains. Exception: "Continue with Google" keeps Google's mark, because Google's branding rules ask for it.
+- **Cards that are tap targets** (poster, gallery photo, ticket) are buttons styled as `.tap-card`, not `.btn`: they are cards.
+- **"This event is over" / "Tickets coming soon"** are status lines (`.status-bar`), not disabled buttons.
+- **Radius:** one token `--radius-xl` (24px) for panels, frames, bands, dialogs and the hero; inner items use `.r-in` (radius minus padding). The hero and page bands went from 32px to 24px to stay in one family.
+- **Type scale:** `.t-hero` (5xl / md:7xl), `.t-title` (4xl / sm:5xl / md:6xl), `.t-section` (3xl / md:4xl), `.t-card` (2xl), `.t-card-lg` (2xl / md:3xl), `.t-lead`. The event title, which sits in a half-width column, uses the plain-page steps without the md step (4xl / sm:5xl). Headings keep the slanted capital poster style you asked for, at line height 1.02.
+- **Sign in / create account** became a plain page (no black band) with a centred card, as the rules ask for short forms.
+- **Checkout:** form (3/5) beside the order summary (2/5) on desktop; on phones the form comes first and the summary follows it, so the main button is reached without scrolling past the order.
+- **Staff forms in dialogs:** ticket types and gallery photos are added and edited in a native dialog (up to 42rem, scrolls inside, Save / Cancel always visible). The event itself stays a full page because it has many sections.
+- **Dialogs** keep a 16px gap from the screen edge on every phone (`calc(100% - 32px)`, in px so the gap does not shrink with the root font).
+- **Back button:** closes the photo viewer, any dialog (confirmations, tickets, staff forms) and the phone menu before leaving the page.
+- **Door scanner** fills one screen (`100dvh`) and the camera square fits the smaller of width and height via a size container.
+- **Images:** posters in 400 / 640 / 1000px versions, hero photos in 640 / 1024 / 1600px, all with `srcset`, `sizes` and real width and height; only the first hero photo is high priority; slideshow photos load only when their turn is near.
+- **Chunks:** Firebase in its own chunk (the public pages need it for live events, so it still loads there); the PDF maker loads only on "Download PDF"; the QR reader only on the scanner. The My tickets page went from 437 KB to 36 KB.
+- **Service worker:** pages are fetched from the network first (4 second limit), falling back to the saved copy or the app shell offline, so a new release shows on the next visit.
+- **Fonts:** Barlow Condensed 800 italic only (700 was unused) and Barlow 400 to 700.

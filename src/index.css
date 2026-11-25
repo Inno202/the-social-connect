@@ -270,7 +270,7 @@
 
 /* ---------- Native dialogs ---------- */
 .dialog {
-  margin: auto; width: calc(100% - 2rem); max-width: 28rem; max-height: calc(100dvh - 2rem);
+  margin: auto; width: calc(100% - 32px); max-width: 28rem; max-height: calc(100dvh - 32px);
   padding: 0; border: 0; border-radius: var(--radius-xl);
   background: #fff; color: var(--color-ink); box-shadow: 0 32px 80px -24px rgb(0 0 0 / .6);
   overflow: hidden;

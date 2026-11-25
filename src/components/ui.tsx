@@ -10,23 +10,38 @@ let ignorePops = 0;
 export function useBackClose(open: boolean, close: () => void) {
   const closeRef = useRef(close);
   closeRef.current = close;
+  const wantOpen = useRef(false);
+  const entry = useRef<string | null>(null);
   useEffect(() => {
     if (!open || typeof window === 'undefined') return;
-    const id = Math.random().toString(36).slice(2);
-    window.history.pushState({ ...(window.history.state ?? {}), __overlay: id }, '');
-    let poppedByUser = false;
+    wantOpen.current = true;
+    // Reuse our history step if it is still the current one (React may re-run this effect).
+    if (!(entry.current && window.history.state?.__overlay === entry.current)) {
+      entry.current = Math.random().toString(36).slice(2);
+      window.history.pushState({ ...(window.history.state ?? {}), __overlay: entry.current }, '');
+    }
+    const id = entry.current;
+    let popped = false;
     const onPop = () => {
       if (ignorePops > 0) { ignorePops--; return; }
-      poppedByUser = true;
+      if (window.history.state?.__overlay === id) return;
+      popped = true;
+      entry.current = null;
       closeRef.current();
     };
     window.addEventListener('popstate', onPop);
     return () => {
       window.removeEventListener('popstate', onPop);
-      if (!poppedByUser && window.history.state?.__overlay === id) {
-        ignorePops++;
-        window.history.back();
-      }
+      wantOpen.current = false;
+      setTimeout(() => {
+        if (wantOpen.current) return;
+        // Closed with X, Escape or a tap outside: remove the extra step so Back still leaves the page next.
+        if (!popped && window.history.state?.__overlay === id) {
+          ignorePops++;
+          window.history.back();
+        }
+        if (entry.current === id) entry.current = null;
+      }, 0);
     };
   }, [open]);
 }
