@@ -28,14 +28,14 @@ await p.locator('main ul li button').first().waitFor();
 await p.evaluate(() => navigator.serviceWorker.ready);
 await p.reload();
 await p.locator('main ul li button').first().click();
-const code = (await p.getByRole('dialog', { name: 'Ticket' }).locator('dd.font-mono').textContent()).trim();
+const code = (await p.locator('dialog[open]').locator('dd.font-mono').textContent()).trim();
 ok(Boolean(await p.evaluate(() => navigator.serviceWorker.controller)), 'service worker controls the page');
 await buyer.setOffline(true);
 await p.reload();
 await p.locator('main ul li button').first().waitFor({ timeout: 15000 });
 ok(await p.getByText('Test Activation (demo event)').first().isVisible(), 'My tickets reloads and shows the ticket with no network');
 await p.locator('main ul li button').first().click();
-ok(await p.getByRole('dialog', { name: 'Ticket' }).getByRole('img', { name: 'Ticket QR code' }).isVisible(), 'the QR code shows offline');
+ok(await p.locator('dialog[open]').getByRole('img', { name: 'Ticket QR code' }).isVisible(), 'the QR code shows offline');
 
 // 2. The door scanner keeps working without signal and syncs later.
 const door = await b.newContext();

@@ -82,7 +82,9 @@ npm run test:e2e
 npm run build
 ```
 
-`test:rules` and `test:e2e` start their own emulators. The e2e suite saves screenshots to `docs/screenshots/`. Three scripted checks run against a production build with the emulators running and seeded:
+`test:rules` and `test:e2e` start their own emulators. The e2e suite saves screenshots to `docs/screenshots/`.
+
+`tests/e2e/layout.spec.ts` enforces the responsive rules on every public page at 1280, 768, 390 and 360px, on signed-in pages for every staff role, at 200% zoom and with a larger phone text size: no sideways scrolling, 48px buttons and fields, 44 x 44px icon buttons, no reading text under 14px, button and chip rows that fill the width, equal-height cards, one h1, sized images, dialogs that keep clear of the screen edge, the back button closing overlays, and axe accessibility. The design system itself is described at the top of `src/index.css` and in `docs/DECISIONS.md`. Three scripted checks run against a production build with the emulators running and seeded:
 
 - `tests/e2e/offline-check.mjs`: tickets and the scanner without signal (build with `VITE_USE_EMULATORS=true`, serve with `npx vite preview --port 4173`).
 - `tests/e2e/pages-check.mjs`: the GitHub Pages build under `/the-social-connect/` (build with `VITE_BASE=/the-social-connect/ VITE_USE_EMULATORS=true`, serve with `node scripts/pages-server.mjs`).
