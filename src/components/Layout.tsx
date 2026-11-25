@@ -8,6 +8,7 @@ import { PARTNERS } from '../data/site';
 import { useBackClose } from './ui';
 
 const NAV = [
+  { to: '/', label: 'Home' },
   { to: '/events', label: 'Events' },
   { to: '/gallery', label: 'Gallery' },
   { to: '/about', label: 'About' },
@@ -22,6 +23,12 @@ export function Header() {
   useEffect(() => setOpen(false), [loc.pathname]);
   useBackClose(open, () => setOpen(false));
   const links = [...NAV, ...(can.dashboard(profile?.role) ? [{ to: '/dashboard', label: 'Dashboard' }] : [])];
+  // The phone menu also names the account and cart, which are icons only in the bar.
+  const mobileLinks = [
+    ...links,
+    { to: user ? '/profile' : '/account', label: user ? 'My tickets' : 'Sign in' },
+    { to: '/cart', label: count ? `Cart (${count})` : 'Cart' },
+  ];
 
   return (
     <header className="bg-ink text-white sticky top-0 z-50">
@@ -35,6 +42,7 @@ export function Header() {
             <NavLink
               key={n.to}
               to={n.to}
+              end={n.to === '/'}
               className={({ isActive }) => `px-4 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`}
             >
               {n.label}
@@ -60,8 +68,8 @@ export function Header() {
       </div>
       {open && (
         <nav id="mobile-nav" aria-label="Main" className="md:hidden border-t border-white/10 wrap pb-4">
-          {links.map((n) => (
-            <NavLink key={n.to} to={n.to} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
+          {mobileLinks.map((n) => (
+            <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
               {n.label}
             </NavLink>
           ))}

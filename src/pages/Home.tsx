@@ -40,9 +40,10 @@ export default function Home() {
 
       <section className="wrap pt-20 md:pt-28" aria-labelledby="upcoming">
         <SectionHead id="upcoming" title="Upcoming" accent="events" to="/events" linkLabel="All events" />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-card-grid>
-          {loading && [0, 1, 2].map((n) => <EventCardSkeleton key={n} />)}
-          {upcoming.slice(0, 6).map((e) => <EventCard key={e.id} event={e} />)}
+        {/* Same grid as the gallery below: the posters are exactly the size of the gallery photos. */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-card-grid>
+          {loading && [0, 1, 2, 3].map((n) => <EventCardSkeleton key={n} compact />)}
+          {upcoming.slice(0, 8).map((e) => <EventCard key={e.id} event={e} compact />)}
         </div>
         {!loading && upcoming.length === 0 && <p className="text-ink-soft prose-w">No events on sale right now. New dates are added here as soon as they are announced.</p>}
         <Link to="/events" className="sm:hidden mt-6 btn btn-outline btn-block">All events <ArrowRight className="btn-arrow" aria-hidden /></Link>

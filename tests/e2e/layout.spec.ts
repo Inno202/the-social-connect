@@ -165,3 +165,40 @@ test('the phone back button closes an open viewer, dialog or menu before leaving
   expect(new URL(page.url()).pathname).toBe('/gallery');
   await ctx.close();
 });
+
+test('home: event posters are exactly the size of the gallery photos, at every width', async ({ browser }) => {
+  for (const w of WIDTHS) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: heightFor(w) } });
+    const page = await ctx.newPage();
+    await page.goto('/');
+    await settle(page, 1200);
+    const r = await page.evaluate(() => {
+      const box = (el: Element) => { const b = el.getBoundingClientRect(); return [Math.round(b.width * 10) / 10, Math.round(b.height * 10) / 10]; };
+      return {
+        events: [...document.querySelectorAll('section[aria-labelledby=upcoming] [data-card] > div:first-child')].map(box),
+        gallery: [...document.querySelectorAll('section[aria-labelledby=gallery-teaser] .grid > a')].map(box),
+      };
+    });
+    expect(r.events.length, `@${w}`).toBeGreaterThan(0);
+    for (const e of r.events) expect(e, `event poster vs gallery photo @${w}`).toEqual(r.gallery[0]);
+    await ctx.close();
+  }
+});
+
+test('nav bar: Home, Events, Gallery, About; the phone menu adds My tickets / Sign in and Cart', async ({ browser }) => {
+  const desk = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const d = await desk.newPage();
+  await d.goto('/');
+  await expect(d.getByRole('navigation', { name: 'Main' }).getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About']);
+  await expect(d.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+  await d.goto('/events/spring-blow-2026');
+  await expect(d.getByRole('link', { name: 'Events', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(d.getByRole('link', { name: 'Home', exact: true })).not.toHaveAttribute('aria-current', 'page');
+  await desk.close();
+  const phone = await browser.newContext({ viewport: { width: 360, height: 740 } });
+  const p = await phone.newPage();
+  await p.goto('/');
+  await p.getByRole('button', { name: 'Open menu' }).click();
+  await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(['Home', 'Events', 'Gallery', 'About', 'Sign in', 'Cart']);
+  await phone.close();
+});
