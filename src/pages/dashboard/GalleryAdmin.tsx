@@ -74,7 +74,8 @@ function AddPhotoDialog({ open, onClose }: { open: boolean; onClose: () => void 
         </div>
         <div className="min-w-0">
           <label htmlFor="g-year" className="field-label">Year</label>
-          <input id="g-year" type="number" inputMode="numeric" className="field num" value={year} onChange={(ev) => setYear(Math.round(Number(ev.target.value)))} />
+          <input id="g-year" type="number" inputMode="numeric" className="field num" aria-describedby="g-year-hint" value={year} onChange={(ev) => setYear(Math.round(Number(ev.target.value)))} />
+          <p id="g-year-hint" className="mt-1 text-sm text-ink-soft">Use 0 if you do not know the year.</p>
         </div>
         <div className="sm:col-span-2 min-w-0">
           <label htmlFor="g-alt" className="field-label">What is in the photo</label>
@@ -103,11 +104,11 @@ export default function GalleryAdmin() {
               <div className="frame aspect-square">
                 {img && <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 768px) 25vw, 50vw" width={img.width} height={img.height} alt={g.alt} className="w-full h-full object-cover" loading="lazy" decoding="async" />}
               </div>
-              <p className="mt-1 text-sm font-semibold line-clamp-1">{g.group} {g.year}</p>
-              <button type="button" className="icon-btn icon-btn-light absolute top-2 right-2 text-danger" aria-label={`Remove photo: ${g.alt}`} onClick={async () => {
+              <p className="mt-1 text-sm font-semibold line-clamp-1">{g.group} {g.year > 0 ? g.year : ''}{g.builtIn && <span className="text-ink-soft font-normal"> · built in</span>}</p>
+              {!g.builtIn && <button type="button" className="icon-btn icon-btn-light absolute top-2 right-2 text-danger" aria-label={`Remove photo: ${g.alt}`} onClick={async () => {
                 if (!db || !(await confirmAction({ title: 'Remove this photo?', message: 'It will no longer show in the gallery.', confirmLabel: 'Remove photo', tone: 'danger' }))) return;
                 try { await deleteDoc(doc(db, 'gallery', g.id)); await logActivity('Removed gallery photo', g.group, g.alt); toast('Photo removed.'); } catch { toast('The photo could not be removed.', 'error'); }
-              }}><Trash2 aria-hidden /></button>
+              }}><Trash2 aria-hidden /></button>}
             </li>
           );
         })}

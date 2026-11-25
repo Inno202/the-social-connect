@@ -12,7 +12,9 @@ export default function Gallery() {
 
   // Grouped by year (newest first), then by event.
   const { groups, flat } = useMemo(() => {
-    const sorted = [...(items ?? [])].sort((a, b) => b.year - a.year || a.group.localeCompare(b.group) || a.order - b.order);
+    // Undated photos come last; within them the general "MSB events" set comes after the named events.
+    const general = (g: { group: string }) => (g.group === 'MSB events' ? 1 : 0);
+    const sorted = [...(items ?? [])].sort((a, b) => b.year - a.year || general(a) - general(b) || a.group.localeCompare(b.group) || a.order - b.order);
     const groups: { key: string; year: number; group: string; idx: number[] }[] = [];
     sorted.forEach((g, i) => {
       const key = `${g.year}-${g.group}`;
@@ -24,7 +26,7 @@ export default function Gallery() {
   }, [items]);
   const photos = flat.map((g) => {
     const img = posterImg(g.src);
-    return { src: img?.src ?? '', srcSet: img?.srcSet, alt: g.alt, caption: `${g.group} ${g.year}: ${g.alt}` };
+    return { src: img?.src ?? '', srcSet: img?.srcSet, alt: g.alt, caption: `${g.group}${g.year ? ` ${g.year}` : ''}: ${g.alt}` };
   });
 
   return (
@@ -40,7 +42,7 @@ export default function Gallery() {
         {groups.map((g) => (
           <section key={g.key} aria-labelledby={`g-${g.key}`}>
             <h2 id={`g-${g.key}`} className="t-section mb-5">
-              {g.group} <span className="text-leaf num">{g.year}</span>
+              {g.group} {g.year > 0 && <span className="text-leaf num">{g.year}</span>}
             </h2>
             <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {g.idx.map((i) => (

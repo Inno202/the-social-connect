@@ -29,6 +29,14 @@ export default function Home() {
   useTitle('');
   const { events, loading } = useEvents();
   const gallery = useGallery();
+  // Teaser: four event photos (posters already show in the events grid above).
+  const teaser = useMemo(() => {
+    const all = gallery ?? [];
+    const photos = all.filter((g) => g.src.includes('/photos/') || g.src.includes('/gallery/'));
+    const pick = ['p-soulfulblow-2026-stage-day', 'p-festival-crowd-night-green', 'p-funwalk-2025-walkers-road', 'p-festival-performer-fist-night'];
+    const chosen = pick.map((id) => photos.find((g) => g.id === id)).filter((g): g is NonNullable<typeof g> => !!g);
+    return (chosen.length === 4 ? chosen : [...photos, ...all]).slice(0, 4);
+  }, [gallery]);
   const upcoming = useMemo(() => (events ? filterEvents(events, 'upcoming') : []), [events]);
   const summer = events?.find((e) => e.id === 'summer-blow-2026');
   const summerImg = posterImg(summer?.poster || '/posters/summer-blow-2026');
@@ -84,7 +92,7 @@ export default function Home() {
       <section className="wrap pt-20 md:pt-28" aria-labelledby="gallery-teaser">
         <SectionHead id="gallery-teaser" title="The" accent="gallery" to="/gallery" linkLabel="Open the gallery" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {(gallery ?? []).slice(0, 4).map((g) => {
+          {teaser.map((g) => {
             const img = posterImg(g.src);
             return (
               <Link key={g.id} to="/gallery" className="group frame aspect-square block">

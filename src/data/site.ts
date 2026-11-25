@@ -24,7 +24,10 @@ export const CALENDAR_2026 = [
 ];
 
 export const HERO_SLIDES = [
-  { src: '/brand/hero-1.webp', alt: 'Artists on the Matjhabeng Spring Blow 2026 line-up' },
-  { src: '/brand/hero-2.webp', alt: 'Artists on the Matjhabeng Soulful Blow 2026 line-up' },
-  { src: '/brand/hero-3.webp', alt: 'MSB Weekend 2024: Spring Blow, Soulful Blow, Spin Blow and MSB Comedy Night' },
+  { src: '/brand/hero-2.webp', alt: 'Packed crowd under green stage lights at night' },
+  { src: '/brand/hero-1.webp', alt: 'Crowd dancing in front of the Soulful Blow 2026 stage on a sunny afternoon' },
+  { src: '/brand/hero-3.webp', alt: 'Guests on the field in front of the Summer Blow stage under a blue sky' },
+  { src: '/brand/hero-4.webp', alt: 'Performer raising a fist to a crowd of phone lights' },
+  { src: '/brand/hero-5.webp', alt: 'Aerial view of a packed festival field at night' },
+  { src: '/brand/hero-6.webp', alt: 'Walkers in MSB Fun Walk 2025 shirts on the road' },
 ];

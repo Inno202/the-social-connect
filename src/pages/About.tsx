@@ -8,7 +8,7 @@ import { MEDIA_PARTNERS_2024 } from '../data/site';
 /* Draft copy, written only from facts MSB Events supplied. Marked for MSB to review (see PLACEHOLDERS.md). */
 export default function About() {
   useTitle('About');
-  const img = posterImg('/posters/msb-weekend-2024');
+  const img = posterImg('/photos/festival-aerial-night');
   return (
     <>
       <PageHero title="About MSB Events" />
@@ -47,7 +47,7 @@ export default function About() {
           <Link to="/events" className="btn btn-primary btn-lg">See upcoming events <ArrowRight className="btn-arrow text-lime" aria-hidden /></Link>
         </div>
         <figure className="frame aspect-square lg:sticky lg:top-24">
-          {img && <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 1024px) 40vw, 100vw" width={img.width} height={img.height} alt="MSB Weekend 2024 poster" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
+          {img && <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 1024px) 40vw, 100vw" width={img.width} height={img.height} alt="Aerial view of a packed MSB festival field at night" className="w-full h-full object-cover" loading="lazy" decoding="async" />}
         </figure>
       </div>
     </>

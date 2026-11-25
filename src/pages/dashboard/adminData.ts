@@ -111,6 +111,7 @@ export async function importBuiltIn(): Promise<{ events: number; photos: number 
     events++;
   }
   for (const g of STATIC_GALLERY) {
+    if (g.builtIn) continue; // event photos ship with the site and always show
     if ((await getDoc(doc(db, 'gallery', g.id))).exists()) continue;
     await setDoc(doc(db, 'gallery', g.id), { src: g.src, alt: g.alt, group: g.group, year: g.year, order: g.order });
     photos++;

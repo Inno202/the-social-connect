@@ -1,11 +1,450 @@
 [
-  { "id": "g-2024-weekend", "src": "/posters/msb-weekend-2024", "alt": "MSB Weekend 2024 poster with the Spring Blow, Soulful Blow, Spin Blow and Comedy Night logos", "group": "MSB Weekend", "year": 2024, "order": 1 },
-  { "id": "g-2026-calendar", "src": "/posters/calendar-2026", "alt": "MSB calendar 2026 poster: save the dates", "group": "MSB calendar", "year": 2026, "order": 1 },
-  { "id": "g-2026-funwalk", "src": "/posters/fun-walk-2026", "alt": "MSB Fun Walk and Family Day 2026 poster", "group": "MSB Fun Walk", "year": 2026, "order": 1 },
-  { "id": "g-2026-act-bj", "src": "/posters/activation-boitumelo-2026", "alt": "Spring Blow 2026 activation poster, Boitumelo Junction", "group": "Spring Blow", "year": 2026, "order": 1 },
-  { "id": "g-2026-act-1st", "src": "/posters/activation-1st-location-2026", "alt": "Spring Blow 2026 activation poster, 1st Location Lifestyle", "group": "Spring Blow", "year": 2026, "order": 2 },
-  { "id": "g-2026-spring", "src": "/posters/spring-blow-2026", "alt": "Matjhabeng Spring Blow 2026 line-up poster", "group": "Spring Blow", "year": 2026, "order": 3 },
-  { "id": "g-2026-soulful", "src": "/posters/soulful-blow-sep-2026", "alt": "Matjhabeng Soulful Blow 2026 line-up poster", "group": "Soulful Blow", "year": 2026, "order": 1 },
-  { "id": "g-2026-soulful-dec-early", "src": "/posters/soulful-blow-dec-2026-earlybird", "alt": "Soulful Blow 27 December poster: earlybird 50 percent sold", "group": "Soulful Blow", "year": 2026, "order": 2 },
-  { "id": "g-2026-soulful-dec-vip", "src": "/posters/soulful-blow-dec-2026", "alt": "Soulful Blow 27 December VIP tables poster", "group": "Soulful Blow", "year": 2026, "order": 3 }
+ {
+  "id": "g-2024-weekend",
+  "src": "/posters/msb-weekend-2024",
+  "alt": "MSB Weekend 2024 poster with the Spring Blow, Soulful Blow, Spin Blow and Comedy Night logos",
+  "group": "MSB Weekend",
+  "year": 2024,
+  "order": 1
+ },
+ {
+  "id": "g-2026-calendar",
+  "src": "/posters/calendar-2026",
+  "alt": "MSB calendar 2026 poster: save the dates",
+  "group": "MSB calendar",
+  "year": 2026,
+  "order": 1
+ },
+ {
+  "id": "g-2026-funwalk",
+  "src": "/posters/fun-walk-2026",
+  "alt": "MSB Fun Walk and Family Day 2026 poster",
+  "group": "MSB Fun Walk",
+  "year": 2026,
+  "order": 1
+ },
+ {
+  "id": "g-2026-act-bj",
+  "src": "/posters/activation-boitumelo-2026",
+  "alt": "Spring Blow 2026 activation poster, Boitumelo Junction",
+  "group": "Spring Blow",
+  "year": 2026,
+  "order": 1
+ },
+ {
+  "id": "g-2026-act-1st",
+  "src": "/posters/activation-1st-location-2026",
+  "alt": "Spring Blow 2026 activation poster, 1st Location Lifestyle",
+  "group": "Spring Blow",
+  "year": 2026,
+  "order": 2
+ },
+ {
+  "id": "g-2026-spring",
+  "src": "/posters/spring-blow-2026",
+  "alt": "Matjhabeng Spring Blow 2026 line-up poster",
+  "group": "Spring Blow",
+  "year": 2026,
+  "order": 3
+ },
+ {
+  "id": "g-2026-soulful",
+  "src": "/posters/soulful-blow-sep-2026",
+  "alt": "Matjhabeng Soulful Blow 2026 line-up poster",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 1
+ },
+ {
+  "id": "g-2026-soulful-dec-early",
+  "src": "/posters/soulful-blow-dec-2026-earlybird",
+  "alt": "Soulful Blow 27 December poster: earlybird 50 percent sold",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 2
+ },
+ {
+  "id": "g-2026-soulful-dec-vip",
+  "src": "/posters/soulful-blow-dec-2026",
+  "alt": "Soulful Blow 27 December VIP tables poster",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 3
+ },
+ {
+  "id": "p-soulfulblow-2026-stage-day",
+  "src": "/photos/soulfulblow-2026-stage-day",
+  "alt": "Crowd dancing in front of the Soulful Blow stage on a sunny afternoon",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 1
+ },
+ {
+  "id": "p-soulfulblow-2026-guests-collage",
+  "src": "/photos/soulfulblow-2026-guests-collage",
+  "alt": "Groups of friends smiling together at Soulful Blow",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 2
+ },
+ {
+  "id": "p-soulfulblow-2026-group-stage",
+  "src": "/photos/soulfulblow-2026-group-stage",
+  "alt": "Vocal group in matching shirts performing on the Soulful Blow stage",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 3
+ },
+ {
+  "id": "p-soulfulblow-2026-singer-night",
+  "src": "/photos/soulfulblow-2026-singer-night",
+  "alt": "Singer in a beaded headband performing at night",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 4
+ },
+ {
+  "id": "p-soulfulblow-2026-singer-blanket",
+  "src": "/photos/soulfulblow-2026-singer-blanket",
+  "alt": "Singer wrapped in a Basotho blanket performing at night",
+  "group": "Soulful Blow",
+  "year": 2026,
+  "order": 5
+ },
+ {
+  "id": "p-springblow-2026-activation-dj",
+  "src": "/photos/springblow-2026-activation-dj",
+  "alt": "DJ playing under a hanging plant ceiling at a Spring Blow activation",
+  "group": "Spring Blow activations",
+  "year": 2026,
+  "order": 6
+ },
+ {
+  "id": "p-springblow-2026-activation-guest",
+  "src": "/photos/springblow-2026-activation-guest",
+  "alt": "Guest holding an MSB Events cushion at a Spring Blow activation",
+  "group": "Spring Blow activations",
+  "year": 2026,
+  "order": 7
+ },
+ {
+  "id": "p-funwalk-2025-stadium-aerial-sunset",
+  "src": "/photos/funwalk-2025-stadium-aerial-sunset",
+  "alt": "Aerial view of walkers gathering at the stadium at sunset",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 8
+ },
+ {
+  "id": "p-funwalk-2025-stadium-aerial-day",
+  "src": "/photos/funwalk-2025-stadium-aerial-day",
+  "alt": "Aerial view of the stadium during the Fun Walk and Family Day",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 9
+ },
+ {
+  "id": "p-funwalk-2025-walkers-road",
+  "src": "/photos/funwalk-2025-walkers-road",
+  "alt": "Walkers in Fun Walk shirts on the road",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 10
+ },
+ {
+  "id": "p-funwalk-2025-walk-leader",
+  "src": "/photos/funwalk-2025-walk-leader",
+  "alt": "Fun Walk participant leading the walk",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 11
+ },
+ {
+  "id": "p-funwalk-2025-child-dancing",
+  "src": "/photos/funwalk-2025-child-dancing",
+  "alt": "Child dancing at the Family Day",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 12
+ },
+ {
+  "id": "p-funwalk-2025-walker-yellow",
+  "src": "/photos/funwalk-2025-walker-yellow",
+  "alt": "Walker in a yellow Fun Walk shirt",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 13
+ },
+ {
+  "id": "p-funwalk-2025-walker-green",
+  "src": "/photos/funwalk-2025-walker-green",
+  "alt": "Walker in a green Fun Walk shirt",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 14
+ },
+ {
+  "id": "p-funwalk-2025-walker-blue",
+  "src": "/photos/funwalk-2025-walker-blue",
+  "alt": "Walker in a blue Fun Walk shirt",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 15
+ },
+ {
+  "id": "p-funwalk-2025-walkers-orange-yellow",
+  "src": "/photos/funwalk-2025-walkers-orange-yellow",
+  "alt": "Two walkers in orange and yellow Fun Walk shirts",
+  "group": "MSB Fun Walk",
+  "year": 2025,
+  "order": 16
+ },
+ {
+  "id": "p-summerblow-field-blue-sky",
+  "src": "/photos/summerblow-field-blue-sky",
+  "alt": "Guests on the field in front of the Summer Blow stage under a blue sky",
+  "group": "Summer Blow",
+  "year": 0,
+  "order": 17
+ },
+ {
+  "id": "p-summerblow-crowd-stage",
+  "src": "/photos/summerblow-crowd-stage",
+  "alt": "Crowd gathered in front of the Summer Blow stage",
+  "group": "Summer Blow",
+  "year": 0,
+  "order": 18
+ },
+ {
+  "id": "p-springblow-crowd-day-flag",
+  "src": "/photos/springblow-crowd-day-flag",
+  "alt": "Spring Blow crowd in the daytime with a flag in the air",
+  "group": "Spring Blow",
+  "year": 0,
+  "order": 19
+ },
+ {
+  "id": "p-springblow-crowd-night-barrier",
+  "src": "/photos/springblow-crowd-night-barrier",
+  "alt": "Spring Blow crowd at the barrier at night",
+  "group": "Spring Blow",
+  "year": 0,
+  "order": 20
+ },
+ {
+  "id": "p-soulfulblow-aerial-sunset",
+  "src": "/photos/soulfulblow-aerial-sunset",
+  "alt": "Aerial view of the Soulful Blow crowd at sunset",
+  "group": "Soulful Blow",
+  "year": 0,
+  "order": 21
+ },
+ {
+  "id": "p-soulfulblow-performer-stage",
+  "src": "/photos/soulfulblow-performer-stage",
+  "alt": "Performer on the Soulful Blow stage",
+  "group": "Soulful Blow",
+  "year": 0,
+  "order": 22
+ },
+ {
+  "id": "p-spinblow-2024-car-drift",
+  "src": "/photos/spinblow-2024-car-drift",
+  "alt": "Car spinning in a cloud of tyre smoke",
+  "group": "Spin Blow",
+  "year": 0,
+  "order": 23
+ },
+ {
+  "id": "p-spinblow-car-drift-blue",
+  "src": "/photos/spinblow-car-drift-blue",
+  "alt": "Blue car spinning past the crowd behind the barriers",
+  "group": "Spin Blow",
+  "year": 0,
+  "order": 24
+ },
+ {
+  "id": "p-festival-crowd-night-green",
+  "src": "/photos/festival-crowd-night-green",
+  "alt": "Packed crowd under green stage lights at night",
+  "group": "MSB events",
+  "year": 0,
+  "order": 25
+ },
+ {
+  "id": "p-festival-aerial-night",
+  "src": "/photos/festival-aerial-night",
+  "alt": "Aerial view of a packed festival field at night",
+  "group": "MSB events",
+  "year": 0,
+  "order": 26
+ },
+ {
+  "id": "p-festival-performer-fist-night",
+  "src": "/photos/festival-performer-fist-night",
+  "alt": "Performer raising a fist to a crowd of phone lights",
+  "group": "MSB events",
+  "year": 0,
+  "order": 27
+ },
+ {
+  "id": "p-festival-performer-waving-night",
+  "src": "/photos/festival-performer-waving-night",
+  "alt": "Performer waving to the crowd from a green-lit stage",
+  "group": "MSB events",
+  "year": 0,
+  "order": 28
+ },
+ {
+  "id": "p-festival-crowd-rain-sunset",
+  "src": "/photos/festival-crowd-rain-sunset",
+  "alt": "Crowd with umbrellas in the rain at sunset",
+  "group": "MSB events",
+  "year": 0,
+  "order": 29
+ },
+ {
+  "id": "p-festival-crowd-rain-night",
+  "src": "/photos/festival-crowd-rain-night",
+  "alt": "Crowd dancing in the rain at night",
+  "group": "MSB events",
+  "year": 0,
+  "order": 30
+ },
+ {
+  "id": "p-festival-performer-green-hair-crowd",
+  "src": "/photos/festival-performer-green-hair-crowd",
+  "alt": "Performer with green hair in front of the crowd",
+  "group": "MSB events",
+  "year": 0,
+  "order": 31
+ },
+ {
+  "id": "p-festival-performer-white",
+  "src": "/photos/festival-performer-white",
+  "alt": "Performer dressed in white on stage",
+  "group": "MSB events",
+  "year": 0,
+  "order": 32
+ },
+ {
+  "id": "p-festival-performer-scotts",
+  "src": "/photos/festival-performer-scotts",
+  "alt": "Performer on stage",
+  "group": "MSB events",
+  "year": 0,
+  "order": 33
+ },
+ {
+  "id": "p-festival-djs",
+  "src": "/photos/festival-djs",
+  "alt": "DJs on stage",
+  "group": "MSB events",
+  "year": 0,
+  "order": 34
+ },
+ {
+  "id": "p-festival-dj-headphones",
+  "src": "/photos/festival-dj-headphones",
+  "alt": "DJ with headphones at the decks",
+  "group": "MSB events",
+  "year": 0,
+  "order": 35
+ },
+ {
+  "id": "p-festival-dj-white-shirt",
+  "src": "/photos/festival-dj-white-shirt",
+  "alt": "DJ in a white shirt in front of an orange screen",
+  "group": "MSB events",
+  "year": 0,
+  "order": 36
+ },
+ {
+  "id": "p-festival-dj-cap",
+  "src": "/photos/festival-dj-cap",
+  "alt": "DJ in a cap at the decks",
+  "group": "MSB events",
+  "year": 0,
+  "order": 37
+ },
+ {
+  "id": "p-festival-dj-duo",
+  "src": "/photos/festival-dj-duo",
+  "alt": "Two DJs playing together at night",
+  "group": "MSB events",
+  "year": 0,
+  "order": 38
+ },
+ {
+  "id": "p-festival-dj-duo-day",
+  "src": "/photos/festival-dj-duo-day",
+  "alt": "Two DJs playing together in the daytime",
+  "group": "MSB events",
+  "year": 0,
+  "order": 39
+ },
+ {
+  "id": "p-festival-dj-day",
+  "src": "/photos/festival-dj-day",
+  "alt": "DJ singing along at the decks",
+  "group": "MSB events",
+  "year": 0,
+  "order": 40
+ },
+ {
+  "id": "p-festival-stage-view-day",
+  "src": "/photos/festival-stage-view-day",
+  "alt": "View from the stage over the daytime crowd",
+  "group": "MSB events",
+  "year": 0,
+  "order": 41
+ },
+ {
+  "id": "p-festival-crowd-day-stage",
+  "src": "/photos/festival-crowd-day-stage",
+  "alt": "Daytime crowd in front of the stage",
+  "group": "MSB events",
+  "year": 0,
+  "order": 42
+ },
+ {
+  "id": "p-festival-aerial-queue",
+  "src": "/photos/festival-aerial-queue",
+  "alt": "Aerial view of guests queuing at the gate",
+  "group": "MSB events",
+  "year": 0,
+  "order": 43
+ },
+ {
+  "id": "p-festival-crowd-denim",
+  "src": "/photos/festival-crowd-denim",
+  "alt": "Friends in denim at the barrier",
+  "group": "MSB events",
+  "year": 0,
+  "order": 44
+ },
+ {
+  "id": "p-festival-crowd-chairs",
+  "src": "/photos/festival-crowd-chairs",
+  "alt": "Friends relaxing on camp chairs on the grass",
+  "group": "MSB events",
+  "year": 0,
+  "order": 45
+ },
+ {
+  "id": "p-festival-guest-smile",
+  "src": "/photos/festival-guest-smile",
+  "alt": "Smiling guest in the crowd",
+  "group": "MSB events",
+  "year": 0,
+  "order": 46
+ },
+ {
+  "id": "p-festival-carpark-chair",
+  "src": "/photos/festival-carpark-chair",
+  "alt": "Guest relaxing on a camp chair by a car",
+  "group": "MSB events",
+  "year": 0,
+  "order": 47
+ }
 ]

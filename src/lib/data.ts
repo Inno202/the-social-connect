@@ -7,7 +7,9 @@ import imageSizes from '../data/imageSizes.json';
 import type { GalleryItem, MsbEvent, TicketType } from './types';
 
 export const STATIC_EVENTS = staticEvents as unknown as MsbEvent[];
-export const STATIC_GALLERY = staticGallery as GalleryItem[];
+export const STATIC_GALLERY = (staticGallery as GalleryItem[]).map((g) => (g.src.startsWith('/photos/') ? { ...g, builtIn: true } : g));
+/** Event photos that ship with the site: shown on every gallery, with or without the database. */
+const BUILT_IN_PHOTOS = STATIC_GALLERY.filter((g) => g.builtIn);
 
 export function toEvent(id: string, d: DocumentData): MsbEvent {
   return {
@@ -135,12 +137,13 @@ export function useGallery() {
     return onSnapshot(
       collection(db, 'gallery'),
       (snap) =>
-        setItems(
-          snap.docs.map((d) => {
+        setItems([
+          ...snap.docs.map((d) => {
             const x = d.data();
             return { id: d.id, src: x.src, alt: x.alt ?? '', group: x.group ?? '', year: x.year ?? 0, order: x.order ?? 0 };
           }),
-        ),
+          ...BUILT_IN_PHOTOS.filter((p) => !snap.docs.some((d) => d.id === p.id)),
+        ]),
       () => setItems(STATIC_GALLERY),
     );
   }, []);
@@ -163,6 +166,7 @@ export function posterSrc(poster: string, size: 'sm' | 'lg' | 'jpg' = 'lg'): str
     return poster;
   }
   if (poster.startsWith('/posters/')) return asset(size === 'sm' ? `${poster}-sm.webp` : size === 'jpg' ? `${poster}.jpg` : `${poster}.webp`);
+  if (poster.startsWith('/photos/')) return asset(size === 'sm' ? `${poster}-sm.webp` : `${poster}.webp`);
   return '';
 }
 
@@ -177,7 +181,7 @@ export function posterImg(poster: string): Img | null {
     return { src: t(1000), srcSet: `${t(400)} 400w, ${t(640)} 640w, ${t(1024)} 1024w, ${t(1600)} 1600w` };
   }
   if (/^https:\/\//.test(poster)) return { src: poster };
-  if (!poster.startsWith('/posters/')) return null;
+  if (!poster.startsWith('/posters/') && !poster.startsWith('/photos/')) return null;
   const size = SIZES[poster];
   const full = size?.[0] ?? 1000;
   return {

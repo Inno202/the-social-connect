@@ -23,7 +23,7 @@ service cloud.firestore {
     function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
     function strList(v, maxItems) { return v is list && v.size() <= maxItems; }
     function imageRef(v) {
-      return v is string && (v == '' || v.matches('^https://res[.]cloudinary[.]com/[A-Za-z0-9_./,-]+$') || v.matches('^/posters/[a-z0-9-]+$'));
+      return v is string && (v == '' || v.matches('^https://res[.]cloudinary[.]com/[A-Za-z0-9_./,-]+$') || v.matches('^/(posters|photos)/[a-z0-9-]+$'));
     }
 
     // ---------- Users ----------
@@ -217,7 +217,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['src', 'alt', 'group', 'year', 'order'])
         && imageRef(request.resource.data.src) && request.resource.data.src != ''
         && str(request.resource.data.alt, 1, 200) && str(request.resource.data.group, 1, 60)
-        && request.resource.data.year is int && request.resource.data.year >= 2015 && request.resource.data.year <= 2100
+        && request.resource.data.year is int && (request.resource.data.year == 0 || (request.resource.data.year >= 2015 && request.resource.data.year <= 2100))
         && request.resource.data.order is int;
       allow delete: if eventStaff();
     }

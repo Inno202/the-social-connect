@@ -28,5 +28,5 @@ export async function uploadImage(file: File, folder: 'posters' | 'gallery' | 'l
 }
 
 export function isSafeImageUrl(url: string): boolean {
-  return /^https:\/\/res\.cloudinary\.com\//.test(url) || /^\/posters\/[a-z0-9-]+$/.test(url);
+  return /^https:\/\/res\.cloudinary\.com\//.test(url) || /^\/(posters|photos)\/[a-z0-9-]+$/.test(url);
 }

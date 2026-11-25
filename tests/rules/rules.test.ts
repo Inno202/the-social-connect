@@ -257,6 +257,9 @@ describe('staff content', () => {
     const ok = { src: 'https://res.cloudinary.com/msb/image/upload/v1/msb/gallery/a.jpg', alt: 'Crowd', group: 'Spring Blow', year: 2026, order: 1 };
     await assertSucceeds(setDoc(doc(as('manager'), 'gallery', 'a'), ok));
     await assertFails(setDoc(doc(as('manager'), 'gallery', 'b'), { ...ok, src: 'javascript:alert(1)' }));
+    await assertSucceeds(setDoc(doc(as('manager'), 'gallery', 'p'), { ...ok, src: '/photos/festival-djs', year: 0 }));
+    await assertFails(setDoc(doc(as('manager'), 'gallery', 'q'), { ...ok, src: '/photos/../x' }));
+    await assertFails(setDoc(doc(as('manager'), 'gallery', 'y'), { ...ok, year: 1999 }));
     await assertFails(setDoc(doc(as('alice'), 'gallery', 'c'), ok));
   });
   it('the activity log is append-only, signed by the actor, and read by the super admin only', async () => {
