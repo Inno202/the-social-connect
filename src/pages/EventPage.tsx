@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CalendarDays, ExternalLink, Expand, MapPin } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Expand, MapPin } from 'lucide-react';
 import { Poster } from '../components/Poster';
 import { PhotoViewer } from '../components/PhotoViewer';
 import { AgeNotice } from '../components/Layout';
 import { Skeleton } from '../components/ui';
-import { useEvent, posterSrc } from '../lib/data';
+import { useEvent, posterImg } from '../lib/data';
 import { canBuyOnSite, isPast } from '../lib/eventState';
 import { dateRange, longDate, randsPlain } from '../lib/format';
 import { CATEGORY_LABEL, type MsbEvent } from '../lib/types';
@@ -52,16 +52,19 @@ function LineUp({ event }: { event: MsbEvent }) {
           <section key={g.name}>
             {g.name && <h3 className="eyebrow text-ink-soft mb-4">{g.name}</h3>}
             <ul className="grid grid-cols-3 sm:grid-cols-4 gap-x-3 gap-y-5">
-              {items.map((a) => (
-                <li key={a.name} className="flex flex-col items-center text-center gap-2">
-                  {a.photo ? (
-                    <img src={posterSrc(a.photo, 'sm')} alt="" className="size-20 rounded-full object-cover bg-mist" loading="lazy" />
-                  ) : (
-                    <span className="size-20 rounded-full bg-ink text-lime grid place-items-center display text-2xl" aria-hidden>{initials(a.name)}</span>
-                  )}
-                  <span className="text-sm font-semibold leading-tight">{a.name}</span>
-                </li>
-              ))}
+              {items.map((a) => {
+                const photo = a.photo ? posterImg(a.photo) : null;
+                return (
+                  <li key={a.name} className="flex flex-col items-center text-center gap-2 min-w-0">
+                    {photo ? (
+                      <img src={photo.src} srcSet={photo.srcSet} sizes="80px" width={80} height={80} alt="" className="size-20 rounded-full object-cover bg-mist" loading="lazy" />
+                    ) : (
+                      <span className="size-20 rounded-full bg-ink text-lime grid place-items-center display text-2xl" aria-hidden>{initials(a.name)}</span>
+                    )}
+                    <span className="text-sm font-semibold leading-tight break-any">{a.name}</span>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         );
@@ -76,21 +79,21 @@ function LineUp({ event }: { event: MsbEvent }) {
 }
 
 export function BuyButton({ event }: { event: MsbEvent }) {
-  if (event.status === 'cancelled') return <p className="btn btn-lg btn-block border border-danger/40 text-danger" role="status">This event was cancelled</p>;
-  if (isPast(event)) return <p className="btn btn-lg btn-block bg-mist text-ink-soft" role="status">This event is over</p>;
+  if (event.status === 'cancelled') return <p className="status-bar status-bar-danger" role="status">This event was cancelled</p>;
+  if (isPast(event)) return <p className="status-bar" role="status">This event is over</p>;
   if (event.sellMode === 'external' && event.externalUrl)
     return (
       <a href={event.externalUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg btn-block">
-        Buy on {event.externalSeller || 'the seller’s site'} <ExternalLink className="size-4 text-lime" aria-hidden />
+        Buy on {event.externalSeller || 'the seller’s site'} <ArrowUpRight className="btn-arrow text-lime" aria-hidden />
       </a>
     );
   if (canBuyOnSite(event))
     return (
       <Link to={`/events/${event.id}/tickets`} className="btn btn-primary btn-lg btn-block">
-        {(event.ticketTypes ?? []).every((t) => t.price === 0) ? 'Get free tickets' : 'Buy tickets'} <ArrowRight className="size-5 btn-arrow text-lime" aria-hidden />
+        {(event.ticketTypes ?? []).every((t) => t.price === 0) ? 'Get free tickets' : 'Buy tickets'} <ArrowRight className="btn-arrow text-lime" aria-hidden />
       </Link>
     );
-  return <p className="btn btn-lg btn-block bg-mist text-ink-soft" role="status">Tickets coming soon</p>;
+  return <p className="status-bar" role="status">Tickets coming soon</p>;
 }
 
 export default function EventPage() {
@@ -103,30 +106,30 @@ export default function EventPage() {
   if (event === null) return <NotFound />;
   if (!event)
     return (
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid gap-8 md:grid-cols-2" role="status" aria-label="Loading event">
-        <Skeleton className="aspect-[4/5] rounded-[2rem]" />
+      <div className="wrap py-10 grid gap-8 md:grid-cols-2" role="status" aria-label="Loading event">
+        <Skeleton className="aspect-[4/5] rounded-[var(--radius-xl)]" />
         <div className="space-y-4"><Skeleton className="h-32" /><Skeleton className="h-28" /><Skeleton className="h-14" /></div>
       </div>
     );
 
   const map = mapLink(event);
   const place = event.venue || 'Venue to be announced';
-  const poster = posterSrc(event.poster, 'lg');
+  const img = posterImg(event.poster);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10">
+    <div className="wrap max-w-6xl py-6 md:py-10">
       <Link to="/events" className="inline-flex items-center gap-2 min-h-[44px] text-sm font-semibold text-ink-soft hover:text-ink">
         <ArrowLeft className="size-4" aria-hidden /> All events
       </Link>
-      <div className="mt-3 grid gap-6 md:gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start">
-        <div className="md:sticky md:top-24">
-          {poster ? (
-            <button type="button" onClick={() => setViewer(true)} className="zoomable group relative block w-full rounded-[2rem] overflow-hidden bg-mist" aria-label="Open the poster full screen">
-              <img src={poster} alt={`${event.title} poster`} className="w-full h-auto block" {...{ fetchpriority: 'high' }} />
-              <span className="zoom-hint absolute top-3 right-3 icon-btn bg-ink/70 text-white" aria-hidden><Expand className="size-4" /></span>
+      <div className="mt-3 grid gap-6 md:gap-10 md:grid-cols-2 items-start">
+        <div className="md:sticky md:top-24 min-w-0">
+          {img ? (
+            <button type="button" onClick={() => setViewer(true)} className="tap-card zoomable group relative frame" aria-label="Open the poster full screen">
+              <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 768px) 560px, 100vw" width={img.width} height={img.height} alt={`${event.title} poster`} className="w-full h-auto block" {...{ fetchpriority: 'high' }} />
+              <span className="zoom-hint icon-btn icon-btn-glass absolute top-3 right-3" aria-hidden><Expand /></span>
             </button>
           ) : (
-            <div className="rounded-[2rem] overflow-hidden aspect-[4/5]"><Poster event={event} /></div>
+            <div className="frame aspect-[4/5]"><Poster event={event} eager /></div>
           )}
         </div>
 
@@ -139,7 +142,7 @@ export default function EventPage() {
           <section className="panel p-6 space-y-5" aria-label="When and where">
             <div className="flex gap-4">
               <span className="size-11 rounded-full bg-mist grid place-items-center shrink-0"><CalendarDays className="size-5" aria-hidden /></span>
-              <div>
+              <div className="min-w-0">
                 <p className="font-bold num">{event.endsAt ? dateRange(event.startsAt, event.endsAt) : longDate(event.startsAt)}</p>
                 <p className="text-ink-soft text-sm num">
                   {event.timeTbc ? 'Times to be announced' : event.gatesOpen ? `Gates open ${event.gatesOpen}` : `Starts ${new Date(event.startsAt).toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg', hour: '2-digit', minute: '2-digit', hour12: false })}`}
@@ -150,8 +153,8 @@ export default function EventPage() {
             <div className="flex gap-4">
               <span className="size-11 rounded-full bg-mist grid place-items-center shrink-0"><MapPin className="size-5" aria-hidden /></span>
               <div className="min-w-0">
-                <p className="font-bold">{place}</p>
-                <p className="text-ink-soft text-sm">{addressLine(event)}</p>
+                <p className="font-bold break-any">{place}</p>
+                <p className="text-ink-soft text-sm break-any">{addressLine(event)}</p>
               </div>
             </div>
           </section>
@@ -163,7 +166,7 @@ export default function EventPage() {
           {loading && <Skeleton className="h-6 w-40 mx-auto" />}
 
           <div className="pt-4">
-            <div role="tablist" aria-label="Event details" className="flex gap-2">
+            <div role="tablist" aria-label="Event details" className="even-cols">
               {TABS.map((t) => (
                 <button
                   key={t}
@@ -172,7 +175,7 @@ export default function EventPage() {
                   aria-selected={tab === t}
                   aria-controls={`panel-${t}`}
                   tabIndex={tab === t ? 0 : -1}
-                  className="chip"
+                  className="btn btn-chip"
                   onClick={() => setTab(t)}
                   onKeyDown={(e) => {
                     const i = TABS.indexOf(t);
@@ -190,10 +193,8 @@ export default function EventPage() {
             <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="panel p-6 mt-4">
               {tab === 'Info' && (
                 <div className="space-y-6">
-                  <p className="whitespace-pre-line">{event.description}</p>
-                  {event.is18Plus && (
-                    <div className="rounded-2xl bg-ink text-white p-4"><AgeNotice /></div>
-                  )}
+                  <p className="whitespace-pre-line prose-w">{event.description}</p>
+                  {event.is18Plus && <div className="rounded-2xl bg-ink text-white p-4"><AgeNotice /></div>}
                   {event.houseRules.length > 0 && (
                     <div>
                       <h2 className="eyebrow text-ink-soft">House rules</h2>
@@ -221,11 +222,11 @@ export default function EventPage() {
               {tab === 'Line up' && <LineUp event={event} />}
               {tab === 'Venue' && (
                 <div className="space-y-3">
-                  <p className="font-bold">{place}</p>
-                  <p className="text-ink-soft">{addressLine(event)}</p>
+                  <p className="font-bold break-any">{place}</p>
+                  <p className="text-ink-soft break-any">{addressLine(event)}</p>
                   {map ? (
                     <a href={map} target="_blank" rel="noopener noreferrer" className="btn btn-outline">
-                      Open in Google Maps <ExternalLink className="size-4" aria-hidden />
+                      Open in Google Maps <ArrowUpRight className="btn-arrow" aria-hidden />
                     </a>
                   ) : (
                     <p className="text-ink-soft">The venue will be announced.</p>
@@ -236,7 +237,7 @@ export default function EventPage() {
           </div>
         </div>
       </div>
-      {viewer && poster && <PhotoViewer photos={[{ src: poster, alt: `${event.title} poster` }]} index={0} onIndex={() => undefined} onClose={() => setViewer(false)} />}
+      {viewer && img && <PhotoViewer photos={[{ src: img.src, srcSet: img.srcSet, alt: `${event.title} poster` }]} index={0} onIndex={() => undefined} onClose={() => setViewer(false)} />}
     </div>
   );
 }

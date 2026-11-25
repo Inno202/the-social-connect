@@ -3,6 +3,7 @@ import { collection, doc, onSnapshot, query, where, type DocumentData } from 'fi
 import { db, firebaseReady } from './firebase';
 import staticEvents from '../data/events.json';
 import staticGallery from '../data/gallery.json';
+import imageSizes from '../data/imageSizes.json';
 import type { GalleryItem, MsbEvent, TicketType } from './types';
 
 export const STATIC_EVENTS = staticEvents as unknown as MsbEvent[];
@@ -163,4 +164,38 @@ export function posterSrc(poster: string, size: 'sm' | 'lg' | 'jpg' = 'lg'): str
   }
   if (poster.startsWith('/posters/')) return asset(size === 'sm' ? `${poster}-sm.webp` : size === 'jpg' ? `${poster}.jpg` : `${poster}.webp`);
   return '';
+}
+
+export interface Img { src: string; srcSet?: string; width?: number; height?: number }
+const SIZES = imageSizes as unknown as Record<string, [number, number]>;
+
+/** A poster or photo with sized versions (400 / 640 / 1000 px) for srcset, plus its real width and height. */
+export function posterImg(poster: string): Img | null {
+  if (!poster) return null;
+  if (/^https:\/\/res\.cloudinary\.com\/.+\/upload\//.test(poster)) {
+    const t = (w: number) => poster.replace('/upload/', `/upload/c_limit,w_${w},f_auto,q_auto/`);
+    return { src: t(1000), srcSet: `${t(400)} 400w, ${t(640)} 640w, ${t(1024)} 1024w, ${t(1600)} 1600w` };
+  }
+  if (/^https:\/\//.test(poster)) return { src: poster };
+  if (!poster.startsWith('/posters/')) return null;
+  const size = SIZES[poster];
+  const full = size?.[0] ?? 1000;
+  return {
+    src: asset(`${poster}.webp`),
+    srcSet: `${asset(`${poster}-sm.webp`)} 400w, ${asset(`${poster}-md.webp`)} 640w, ${asset(`${poster}.webp`)} ${full}w`,
+    width: size?.[0],
+    height: size?.[1],
+  };
+}
+
+/** Hero photos in 640 / 1024 / 1600 px versions. */
+export function heroImg(path: string): Img {
+  const base = path.replace(/\.webp$/, '');
+  const size = SIZES[path];
+  return {
+    src: asset(path),
+    srcSet: `${asset(`${base}-640.webp`)} 640w, ${asset(`${base}-1024.webp`)} 1024w, ${asset(path)} 1600w`,
+    width: size?.[0],
+    height: size?.[1],
+  };
 }

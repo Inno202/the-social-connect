@@ -13,14 +13,14 @@ export default function ActivityLog() {
   }, []);
   return (
     <div className="space-y-6">
-      <h2 className="display text-4xl">Activity</h2>
+      <h2 className="t-section">Activity</h2>
       {!rows && <Skeleton className="h-60" />}
       {rows && rows.length === 0 && <p className="text-ink-soft">No staff activity yet.</p>}
       <ol className="panel divide-y divide-line">
         {rows?.map((r) => (
           <li key={r.id} className="p-4 flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-4">
             <span className="text-sm text-ink-soft num sm:w-44 shrink-0">{r.at ? r.at.toDate().toLocaleString('en-ZA', { timeZone: 'Africa/Johannesburg', dateStyle: 'medium', timeStyle: 'short' }) : 'Just now'}</span>
-            <span className="min-w-0"><strong>{r.actorName}</strong> {r.action.toLowerCase()}: {r.target} <span className="text-ink-soft break-all">{r.detail}</span></span>
+            <span className="min-w-0 break-any"><strong>{r.actorName}</strong> {r.action.toLowerCase()}: {r.target} <span className="text-ink-soft break-all">{r.detail}</span></span>
           </li>
         ))}
       </ol>

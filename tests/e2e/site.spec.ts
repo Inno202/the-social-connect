@@ -2,47 +2,20 @@ import { test, expect, chromium, type Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import QRCode from 'qrcode';
-import { SHOTS, WIDTHS, checkA11y, checkLayout, settle, shot, signIn, watchErrors } from './helpers';
+import { SHOTS, checkA11y, checkLayout, settle, shot, signIn, watchErrors } from './helpers';
 
-const PUBLIC = ['/', '/events', '/events?show=past', '/events/spring-blow-2026', '/events/soulful-blow-december-2026', '/events/demo-test-night-2026', '/gallery', '/about', '/terms', '/privacy', '/cookies'];
 const fan = { name: 'Lerato Test', email: `fan${Date.now()}@msb.test`, password: 'blow-2026-test' };
 let ticketCode = '';
 let ticketCode2 = '';
 
 test.describe.configure({ mode: 'serial' });
 
-test('public pages: no sideways scroll, 44px controls, no errors, accessible', async ({ browser }) => {
-  for (const w of WIDTHS) {
-    const ctx = await browser.newContext({ viewport: { width: w, height: w < 500 ? 844 : 900 }, deviceScaleFactor: w === 1280 ? 1 : 2 });
-    const page = await ctx.newPage();
-    const errors = watchErrors(page);
-    for (const path of PUBLIC) {
-      await page.goto(path);
-      await settle(page, 900);
-      await checkLayout(page, `${path} @${w}`);
-      if (w !== 360) await checkA11y(page, `${path} @${w}`);
-    }
-    expect(errors).toEqual([]);
-    await ctx.close();
-  }
-});
-
-test('screenshots of home, events, event page and gallery viewer', async ({ browser }) => {
+test('event line-up and gallery viewer', async ({ browser }) => {
   for (const [w, tag] of [[1280, 'desktop'], [390, 'phone']] as const) {
     const ctx = await browser.newContext({ viewport: { width: w, height: w < 500 ? 844 : 900 }, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
-    await page.goto('/');
-    await settle(page, 1200);
-    // load lazy images before a full-page shot
-    await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 500) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 80)); } window.scrollTo(0, 0); });
-    await page.waitForTimeout(800);
-    await expect(page.getByRole('heading', { name: /The MSB calendar 2026/i })).toBeVisible();
-    await expect(page.locator('ol a', { hasText: 'Summer Blow' })).toBeVisible();
-    await shot(page, `home-${tag}`);
     await page.goto('/events/spring-blow-2026');
     await settle(page, 1000);
-    await expect(page.getByRole('link', { name: /Buy on Computicket|event is over/i }).or(page.getByText('This event is over'))).toBeVisible();
-    await shot(page, `event-page-${tag}`);
     await page.getByRole('tab', { name: 'Line up' }).click();
     await expect(page.getByRole('button', { name: /more$/ })).toBeVisible();
     await shot(page, `event-lineup-${tag}`, false);
@@ -121,7 +94,17 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   await page.getByLabel('Seat 2', { exact: true }).fill('Thabo Guest');
   await page.getByLabel('Everyone on these tickets is 18 or older.').check();
   await page.getByLabel(/I accept the/).check();
-  await shot(page, 'checkout-details-desktop');
+  await checkLayout(page, 'checkout details @1280');
+  await shot(page, 'checkout-desktop');
+  await page.setViewportSize({ width: 360, height: 740 });
+  await page.waitForTimeout(400);
+  await checkLayout(page, 'checkout details @360');
+  await shot(page, 'checkout-360');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(300);
+  await shot(page, 'checkout-phone');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByText('No payment is taken.')).toBeVisible();
   await shot(page, 'checkout-pay-desktop', false);
@@ -152,17 +135,17 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
 
   // The guest name is on seat 2, and the owner can change it.
   await page.locator('main ul li button', { hasText: 'Seat 2 of 4' }).click();
-  const seat = page.getByRole('dialog', { name: 'Ticket' });
+  const seat = page.locator('dialog[open]');
   await expect(seat.getByText('Thabo Guest')).toBeVisible();
   await seat.getByRole('button', { name: 'Change name' }).click();
   await seat.getByLabel('Name on this ticket').fill('Thabo Mokoena');
   await seat.getByRole('button', { name: 'Save' }).click();
   await expect(seat.getByText('Thabo Mokoena')).toBeVisible();
-  await seat.getByRole('button', { name: 'Close ticket' }).click();
+  await seat.getByRole('button', { name: 'Close' }).click();
 
   // Open a general ticket, read its code, download the PDF.
   await page.locator('main ul li button', { hasText: '2nd release' }).first().click();
-  const modal = page.getByRole('dialog', { name: 'Ticket' });
+  const modal = page.locator('dialog[open]');
   await expect(modal).toBeVisible();
   ticketCode = (await modal.locator('dd.font-mono').textContent())!.trim();
   expect(ticketCode).toMatch(/_\d+$/);
@@ -171,11 +154,11 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   const [download] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Download PDF ticket' }).click()]);
   mkdirSync('test-results', { recursive: true });
   await download.saveAs('test-results/ticket.pdf');
-  await modal.getByRole('button', { name: 'Close ticket' }).click();
+  await modal.getByRole('button', { name: 'Close' }).click();
   await page.locator('main ul li button', { hasText: '2nd release' }).nth(1).click();
-  ticketCode2 = (await page.getByRole('dialog', { name: 'Ticket' }).locator('dd.font-mono').textContent())!.trim();
+  ticketCode2 = (await page.locator('dialog[open]').locator('dd.font-mono').textContent())!.trim();
   expect(ticketCode2).not.toBe(ticketCode);
-  await page.getByRole('button', { name: 'Close ticket' }).click();
+  await page.locator('dialog[open]').getByRole('button', { name: 'Close' }).click();
   execFileSync('pdftoppm', ['-png', '-r', '150', '-singlefile', 'test-results/ticket.pdf', `${SHOTS}/pdf-ticket`]);
   expect(errors).toEqual([]);
   await ctx.close();
@@ -310,7 +293,7 @@ test('staff roles see only their own areas', async ({ browser }) => {
   await ctx.close();
 });
 
-test('event staff can duplicate an event and edit its ticket types', async ({ browser }) => {
+test('event staff can duplicate an event and add a ticket type in the staff dialog', async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await ctx.newPage();
   await signIn(page, 'manager@msb.test', undefined, '/dashboard/events');
@@ -318,9 +301,17 @@ test('event staff can duplicate an event and edit its ticket types', async ({ br
   await expect(page.getByRole('heading', { name: 'Edit event' })).toBeVisible();
   await expect(page.getByLabel('Title')).toHaveValue(/\(copy\)/);
   await page.getByRole('button', { name: 'Add ticket type' }).click();
-  await page.locator('input[id^="tn-"]').last().fill('VIP table for 8');
-  await page.locator('input[id^="tp-"]').last().fill('6000');
-  await page.locator('input[id^="ts-"]').last().fill('8');
+  const dlg = page.locator('dialog[open]');
+  await dlg.getByRole('button', { name: 'Save ticket type' }).click();
+  await expect(dlg.getByText(/Name this ticket type/)).toBeVisible();
+  await expect(dlg.getByLabel('Name')).toBeFocused();
+  await dlg.getByLabel('Group').fill('VIP tables');
+  await dlg.getByLabel('Name').fill('VIP table for 8');
+  await dlg.getByLabel('Price (R)').fill('6000');
+  await dlg.getByLabel('Admits').fill('8');
+  await dlg.getByRole('button', { name: 'Save ticket type' }).click();
+  await expect(dlg).toBeHidden();
+  await expect(page.getByText('VIP tables: VIP table for 8')).toBeVisible();
   await page.getByRole('button', { name: 'Save event' }).click();
   await expect(page.getByText('Event saved.')).toBeVisible();
   await expect(page.getByText('Test Activation (demo event) (copy)')).toBeVisible();

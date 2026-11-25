@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, onSnapshot, query, where, type Timestamp } from 'firebase/firestore';
-import { Download } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { useEvents } from '../../lib/data';
 import { rands, randsPlain, shortDate } from '../../lib/format';
@@ -49,8 +48,8 @@ export default function Reports() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <h2 className="display text-4xl">Reports</h2>
-        <div className="sm:w-80">
+        <h2 className="t-section">Reports</h2>
+        <div className="w-full sm:w-80">
           <label htmlFor="rep-ev" className="field-label">Event</label>
           <select id="rep-ev" className="field" value={eventId} onChange={(e) => setEventId(e.target.value)}>
             {sold.map((e) => <option key={e.id} value={e.id}>{e.title} · {shortDate(e.startsAt)}</option>)}
@@ -60,14 +59,14 @@ export default function Reports() {
       {!ev && <p className="text-ink-soft">No events are sold on this site yet.</p>}
       {ev && (
         <>
-          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 items-stretch">
             {[
               ['Tickets issued', tickets ? String(tickets.length) : '…'],
               ['Scanned in', tickets ? String(scanned) : '…'],
               ['Still to arrive', tickets ? String(tickets.filter((t) => t.status === 'valid').length) : '…'],
               ['Ticket value (not charged)', randsPlain(value)],
             ].map(([k, v]) => (
-              <div key={k} className="panel p-5"><p className="text-sm text-ink-soft">{k}</p><p className="display text-4xl mt-1 num">{v}</p></div>
+              <div key={k} className="panel p-5 flex flex-col min-w-0"><p className="text-sm text-ink-soft">{k}</p><p className="t-section mt-auto pt-1 num break-any">{v}</p></div>
             ))}
           </div>
           <div className="panel p-5 overflow-x-auto">
@@ -87,8 +86,8 @@ export default function Reports() {
             </table>
           </div>
           {!tickets ? <Skeleton className="h-12 w-56" /> : (
-            <button type="button" className="btn btn-primary" onClick={exportCsv} disabled={tickets.length === 0}>
-              <Download className="size-4 text-lime" aria-hidden /> Export attendees (CSV)
+            <button type="button" className="btn btn-primary btn-block sm:w-auto" onClick={exportCsv} disabled={tickets.length === 0}>
+              Export attendees (CSV)
             </button>
           )}
         </>

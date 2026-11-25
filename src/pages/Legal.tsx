@@ -15,7 +15,7 @@ function Doc({ title, children }: { title: string; children: ReactNode }) {
   return (
     <>
       <PageHero title={title} />
-      <article className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-16 space-y-8 [&_h2]:display [&_h2]:text-3xl [&_h2]:sm:text-4xl [&_h2]:mt-10 [&_p]:text-ink-soft [&_li]:text-ink-soft [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_p]:max-w-[68ch]">
+      <article className="legal wrap-read py-12 md:py-16 space-y-6 text-lg leading-relaxed">
         <p className="text-sm num">Last updated {LEGAL_UPDATED}</p>
         {children}
       </article>

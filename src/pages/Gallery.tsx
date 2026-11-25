@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Expand } from 'lucide-react';
 import { PageHero } from '../components/Layout';
 import { PhotoViewer } from '../components/PhotoViewer';
-import { useGallery, posterSrc } from '../lib/data';
+import { useGallery, posterImg } from '../lib/data';
 import { useTitle } from '../lib/useTitle';
 
 export default function Gallery() {
@@ -22,29 +22,32 @@ export default function Gallery() {
     });
     return { groups, flat: sorted };
   }, [items]);
-  const photos = flat.map((g) => ({ src: posterSrc(g.src, 'lg'), alt: g.alt, caption: `${g.group} ${g.year}: ${g.alt}` }));
+  const photos = flat.map((g) => {
+    const img = posterImg(g.src);
+    return { src: img?.src ?? '', srcSet: img?.srcSet, alt: g.alt, caption: `${g.group} ${g.year}: ${g.alt}` };
+  });
 
   return (
     <>
       <PageHero title="Gallery" />
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-14">
+      <div className="wrap py-12 md:py-16 space-y-14">
         {!items && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" aria-hidden>
-            {Array.from({ length: 8 }, (_, n) => <div key={n} className="aspect-square rounded-3xl bg-mist animate-pulse" />)}
+            {Array.from({ length: 8 }, (_, n) => <div key={n} className="aspect-square rounded-[var(--radius-xl)] bg-mist animate-pulse" />)}
           </div>
         )}
         {items && items.length === 0 && <p className="text-ink-soft">Photos from our events will appear here.</p>}
         {groups.map((g) => (
           <section key={g.key} aria-labelledby={`g-${g.key}`}>
-            <h2 id={`g-${g.key}`} className="display text-4xl sm:text-5xl mb-5">
+            <h2 id={`g-${g.key}`} className="t-section mb-5">
               {g.group} <span className="text-leaf num">{g.year}</span>
             </h2>
             <ul className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {g.idx.map((i) => (
                 <li key={flat[i].id}>
-                  <button type="button" onClick={() => setOpen(i)} className="zoomable group frame aspect-square block w-full relative" aria-label={`Open photo: ${flat[i].alt}`}>
-                    <img src={posterSrc(flat[i].src, 'sm')} alt={flat[i].alt} loading="lazy" className="photo-zoom w-full h-full object-cover" />
-                    <span className="zoom-hint absolute top-2 right-2 icon-btn bg-ink/70 text-white" aria-hidden><Expand className="size-4" /></span>
+                  <button type="button" onClick={() => setOpen(i)} className="tap-card zoomable group frame aspect-square relative" aria-label={`Open photo: ${flat[i].alt}`}>
+                    <img src={photos[i].src} srcSet={photos[i].srcSet} sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw" width={posterImg(flat[i].src)?.width} height={posterImg(flat[i].src)?.height} alt={flat[i].alt} loading="lazy" decoding="async" className="photo-zoom w-full h-full object-cover" />
+                    <span className="zoom-hint icon-btn icon-btn-glass absolute top-2 right-2" aria-hidden><Expand /></span>
                   </button>
                 </li>
               ))}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { Search } from 'lucide-react';
 import { db } from '../../lib/firebase';
 import { useAuth } from '../../lib/auth';
 import { ROLES, ROLE_LABEL, type Role, type UserProfile } from '../../lib/types';
@@ -32,19 +33,25 @@ export default function UsersAdmin() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <h2 className="display text-4xl">Users and roles</h2>
-        <div className="sm:w-72"><label htmlFor="uq" className="field-label">Search</label><input id="uq" className="field" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+        <h2 className="t-section">Users and roles</h2>
+        <div className="w-full sm:w-72">
+          <label htmlFor="uq" className="field-label">Search</label>
+          <div className="relative">
+            <Search className="size-5 absolute left-4 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" aria-hidden />
+            <input id="uq" type="search" className="field field-icon-l" placeholder="Name or email" value={q} onChange={(e) => setQ(e.target.value)} />
+          </div>
+        </div>
       </div>
       {!users && <Skeleton className="h-40" />}
       <ul className="space-y-2">
         {list.map((u) => (
-          <li key={u.uid} className="panel p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <li key={u.uid} className="panel p-4 grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_12rem_auto] sm:items-center gap-3">
             <div className="flex-1 min-w-0">
               <p className="font-bold">{u.name}{u.uid === user?.uid && ' (you)'}</p>
-              <p className="text-sm text-ink-soft truncate">{u.email}</p>
+              <p className="text-sm text-ink-soft break-any">{u.email}</p>
             </div>
             <label className="sr-only" htmlFor={`role-${u.uid}`}>Role for {u.name}</label>
-            <select id={`role-${u.uid}`} className="field sm:w-48" value={u.role} disabled={u.uid === user?.uid} onChange={(e) => change(u, { role: e.target.value as Role })}>
+            <select id={`role-${u.uid}`} className="field" value={u.role} disabled={u.uid === user?.uid} onChange={(e) => change(u, { role: e.target.value as Role })}>
               {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
             </select>
             <button type="button" className={`btn ${u.active ? 'btn-danger' : 'btn-outline'}`} disabled={u.uid === user?.uid} onClick={() => change(u, { active: !u.active })}>

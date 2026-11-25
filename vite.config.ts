@@ -65,10 +65,16 @@ export default defineConfig(({ mode }) => {
           // The app shell, the ticket pages and the posters are kept on the phone so tickets open without signal.
           globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
           globIgnores: ['**/brand/hero-*', 'posters/*.jpg', '404.html'],
-          navigateFallback: `${base}index.html`,
-          navigateFallbackDenylist: [/^\/__/],
+          // Pages: newest from the network first, so a new release shows on the next visit;
+          // the saved copy (or the app shell) is used only when there is no signal.
+          navigateFallback: null,
           maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
           runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: { cacheName: 'pages', networkTimeoutSeconds: 4, expiration: { maxEntries: 40 }, precacheFallback: { fallbackURL: `${base}index.html` } },
+            },
             {
               urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
               handler: 'StaleWhileRevalidate',
@@ -90,6 +96,20 @@ export default defineConfig(({ mode }) => {
     ],
     server: { host: '127.0.0.1', port: 5173 },
     preview: { host: '127.0.0.1', port: 4173 },
-    build: { chunkSizeWarningLimit: 900 },
+    build: {
+      chunkSizeWarningLimit: 900,
+      rolldownOptions: {
+        output: {
+          // Big libraries in their own chunks. QR scanning (jsqr) and the PDF maker (jspdf) are only
+          // imported by the scanner and on "Download PDF"; Firebase is shared by the live pages.
+          advancedChunks: {
+            groups: [
+              { name: 'firebase', test: /node_modules[\\/](@firebase|firebase)[\\/]/ },
+              { name: 'react', test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/ },
+            ],
+          },
+        },
+      },
+    },
   };
 });

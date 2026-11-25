@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { collection, doc, getDoc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import jsQR from 'jsqr';
-import { ArrowLeft, Camera, CheckCircle2, Keyboard, WifiOff, XCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, WifiOff, XCircle } from 'lucide-react';
 import { useAuth, can } from '../lib/auth';
 import { db } from '../lib/firebase';
 import { useEvents } from '../lib/data';
@@ -174,15 +174,15 @@ export default function Scanner() {
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); stopCamera(); }, []);
 
-  if (!ready) return <div className="min-h-dvh bg-ink grid place-items-center text-white"><Spinner className="size-6" /></div>;
+  if (!ready) return <div className="screen-full bg-ink grid place-items-center text-white"><Spinner className="size-6" label="Loading" /></div>;
   if (!user) return <Navigate to="/account?next=/scan" replace />;
   if (!can.scan(profile?.role))
     return (
-      <div className="min-h-dvh bg-ink text-white grid place-items-center p-6 text-center">
+      <div className="screen-full bg-ink text-white grid place-items-center p-6 text-center">
         <div>
-          <h1 className="display text-5xl">Staff <span className="text-lime">only</span></h1>
+          <h1 className="t-title">Staff <span className="text-lime">only</span></h1>
           <p className="mt-3 text-white/80">The door scanner is for MSB door staff.</p>
-          <Link to="/" className="btn btn-lime mt-6">Go to the home page</Link>
+          <Link to="/" className="btn btn-accent mt-6">Go to the home page</Link>
         </div>
       </div>
     );
@@ -191,61 +191,58 @@ export default function Scanner() {
   const usedCount = [...tickets.values()].filter((t) => t.status === 'used').length;
 
   return (
-    <div className="min-h-dvh bg-ink text-white flex flex-col">
-      <div className="mx-auto w-full max-w-md px-4 pt-4 flex items-center gap-2">
-        <Link to="/dashboard" className="icon-btn hover:bg-white/10" aria-label="Back to the dashboard"><ArrowLeft className="size-5" aria-hidden /></Link>
+    <div className="screen-full bg-ink text-white flex flex-col overflow-hidden">
+      <h1 className="sr-only">Door scanner</h1>
+      <div className="mx-auto w-full max-w-md px-4 pt-3 flex items-center gap-2 shrink-0">
+        <Link to="/dashboard" className="icon-btn icon-btn-ghost-light" aria-label="Back to the dashboard"><ArrowLeft aria-hidden /></Link>
         <label className="sr-only" htmlFor="scan-event">Event</label>
         <select
           id="scan-event"
           value={eventId}
           onChange={(e) => { setEventId(e.target.value); guard.current.reset(); }}
-          className="flex-1 min-w-0 min-h-[44px] rounded-full bg-white/10 text-white px-4 font-semibold truncate [&>option]:text-ink"
+          className="field field-dark field-pill flex-1 min-w-0 font-semibold truncate"
         >
           {choices.length === 0 && <option value="">No events to scan</option>}
           {choices.map((e) => <option key={e.id} value={e.id}>{e.shortTitle} · {shortDate(e.startsAt)}</option>)}
         </select>
       </div>
 
-      <div className="mx-auto w-full max-w-md px-4 mt-3 flex items-center justify-between gap-2">
-        <div role="group" aria-label="Scan mode" className="flex rounded-full bg-white/10 p-1">
-          <button type="button" aria-pressed={mode === 'camera'} onClick={() => setMode('camera')} className={`min-h-[40px] px-4 rounded-full text-sm font-semibold inline-flex items-center gap-2 ${mode === 'camera' ? 'bg-lime text-ink' : 'text-white'}`}>
-            <Camera className="size-4" aria-hidden /> Camera
-          </button>
-          <button type="button" aria-pressed={mode === 'type'} onClick={() => setMode('type')} className={`min-h-[40px] px-4 rounded-full text-sm font-semibold inline-flex items-center gap-2 ${mode === 'type' ? 'bg-lime text-ink' : 'text-white'}`}>
-            <Keyboard className="size-4" aria-hidden /> Type
-          </button>
+      <div className="mx-auto w-full max-w-md px-4 mt-3 shrink-0">
+        <div role="group" aria-label="Scan mode" className="even-cols">
+          <button type="button" aria-pressed={mode === 'camera'} onClick={() => setMode('camera')} className="btn btn-chip-light">Camera</button>
+          <button type="button" aria-pressed={mode === 'type'} onClick={() => setMode('type')} className="btn btn-chip-light">Type</button>
         </div>
-        <p className="text-xs text-white/75 num text-right" aria-live="polite">
-          {listReady ? `${usedCount} in · ${tickets.size} tickets` : 'Loading tickets'}
-        </p>
+        <div className="mt-2 flex items-center justify-between gap-2 text-sm text-white/75 min-h-[1.5rem]">
+          <span aria-live="polite" className="num">{listReady ? `${usedCount} in · ${tickets.size} tickets` : 'Loading tickets'}</span>
+          {!online && <span className="inline-flex items-center gap-1.5 text-lime"><WifiOff className="size-4" aria-hidden /> No signal: scans sync later</span>}
+        </div>
       </div>
-      {!online && (
-        <p className="mx-auto max-w-md px-4 mt-3 text-sm text-lime inline-flex items-center gap-2"><WifiOff className="size-4" aria-hidden /> No signal. Scans are saved and sync when signal returns.</p>
-      )}
 
-      <div className="mx-auto w-full max-w-md px-4 mt-4 flex-1">
+      <div className="tool-body flex-1 min-h-0 px-4 pt-3 pb-4">
         {mode === 'camera' ? (
-          <div className={`relative aspect-square rounded-[2rem] overflow-hidden bg-charcoal border-4 transition-colors duration-200 ${frameColor}`}>
-            <video ref={videoRef} className="w-full h-full object-cover" playsInline muted aria-label="Camera view" />
-            <div className={`pointer-events-none absolute inset-[18%] rounded-3xl border-4 transition-colors duration-200 ${frameColor}`} aria-hidden />
-            {camState === 'starting' && <p className="absolute inset-0 grid place-items-center text-white/80"><span className="inline-flex items-center gap-2"><Spinner /> Starting the camera</span></p>}
-            {camState === 'blocked' && (
-              <div className="absolute inset-0 grid place-items-center p-6 text-center bg-charcoal">
-                <div>
-                  <p>Camera access is blocked. Allow the camera for this site in the browser settings, then tap Try again.</p>
-                  <button type="button" className="btn btn-lime mt-4" onClick={() => { setMode('type'); setTimeout(() => setMode('camera'), 50); }}>Try again</button>
+          <div className="tool-stage">
+            <div className={`tool-frame relative frame !bg-charcoal border-4 transition-colors duration-200 ${frameColor}`}>
+              <video ref={videoRef} className="w-full h-full object-cover" playsInline muted aria-label="Camera view" />
+              <div className={`pointer-events-none absolute inset-[18%] rounded-2xl border-4 transition-colors duration-200 ${frameColor}`} aria-hidden />
+              {camState === 'starting' && <p className="absolute inset-0 grid place-items-center text-white/80"><span className="inline-flex items-center gap-2"><Spinner label="Starting the camera" /> Starting the camera</span></p>}
+              {camState === 'blocked' && (
+                <div className="absolute inset-0 grid place-items-center p-6 text-center bg-charcoal">
+                  <div>
+                    <p>Camera access is blocked. Allow the camera for this site in the browser settings, then tap Try again.</p>
+                    <button type="button" className="btn btn-accent mt-4" onClick={() => { setMode('type'); setTimeout(() => setMode('camera'), 50); }}>Try again</button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ) : (
           <form
-            className="rounded-[2rem] bg-white/5 p-5 space-y-3"
+            className="tool-stage rounded-[var(--radius-xl)] bg-white/5 p-5 space-y-3"
             onSubmit={async (e) => { e.preventDefault(); if (!typed.trim()) return; setBusy(true); await check(typed); setBusy(false); setTyped(''); }}
           >
             <label htmlFor="code" className="field-label text-white">Ticket code</label>
-            <input id="code" value={typed} onChange={(e) => setTyped(e.target.value)} className="field font-mono text-ink" autoComplete="off" autoCapitalize="off" spellCheck={false} placeholder="Code printed under the QR" />
-            <button className="btn btn-lime btn-block" disabled={busy}>{busy && <Spinner />} Check ticket</button>
+            <input id="code" value={typed} onChange={(e) => setTyped(e.target.value)} className="field font-mono" autoComplete="off" autoCapitalize="off" spellCheck={false} placeholder="Code printed under the QR" />
+            <button className="btn btn-accent btn-block" disabled={busy}>{busy && <Spinner label="Checking ticket" />} Check ticket</button>
           </form>
         )}
         <canvas ref={canvasRef} className="hidden" />
@@ -253,13 +250,13 @@ export default function Scanner() {
 
       <div className="fixed inset-x-0 bottom-0 pointer-events-none" aria-live="assertive">
         {result && (
-          <div key={result.key} className="scan-result mx-auto max-w-md px-4 pb-6" data-leaving={leaving}>
-            <div className={`rounded-[2rem] p-5 shadow-2xl ${result.ok ? 'bg-green-600' : 'bg-red-600'} text-white`} data-testid="scan-result" data-ok={result.ok}>
+          <div key={result.key} className="scan-result mx-auto max-w-md px-4 pb-4" data-leaving={leaving}>
+            <div className={`rounded-[var(--radius-xl)] p-5 shadow-2xl ${result.ok ? 'bg-green-700' : 'bg-red-700'} text-white`} data-testid="scan-result" data-ok={result.ok}>
               <div className="flex items-center gap-3">
                 {result.ok ? <CheckCircle2 className="size-9 shrink-0" aria-hidden /> : <XCircle className="size-9 shrink-0" aria-hidden />}
                 <div className="min-w-0">
-                  <p className="display text-4xl">{result.title}</p>
-                  <p className="text-white/95 font-medium">{result.detail}</p>
+                  <p className="t-section">{result.title}</p>
+                  <p className="text-white/95 font-medium break-any">{result.detail}</p>
                 </div>
               </div>
               <div className="mt-4 h-1 rounded-full bg-white/30 overflow-hidden"><div className="scan-timer h-full bg-white" style={{ ['--ms' as string]: `${resultDuration(result)}ms` }} /></div>

@@ -1,4 +1,4 @@
-import { posterSrc } from '../lib/data';
+import { posterImg } from '../lib/data';
 import type { MsbEvent } from '../lib/types';
 
 function lum(hex: string) {
@@ -12,13 +12,18 @@ export function textOn(hex: string): string {
   return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? '#FFFFFF' : '#0B0B0C';
 }
 
-/** The event's own poster. Without one, a plain block in the event's poster colour carries the name. */
-export function Poster({ event, size = 'lg', className = '', eager = false }: { event: Pick<MsbEvent, 'poster' | 'posterColor' | 'title' | 'shortTitle'>; size?: 'sm' | 'lg'; className?: string; eager?: boolean }) {
-  const src = posterSrc(event.poster, size);
-  if (!src) {
+/**
+ * The event's own poster, filling its (fixed aspect ratio) frame. Without one, a plain block in the
+ * event's poster colour carries the name. `sizes` tells the browser which srcset width to fetch.
+ */
+export function Poster({
+  event, sizes = '(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw', className = '', eager = false,
+}: { event: Pick<MsbEvent, 'poster' | 'posterColor' | 'title' | 'shortTitle'>; sizes?: string; className?: string; eager?: boolean }) {
+  const img = posterImg(event.poster);
+  if (!img) {
     return (
       <div className={`@container w-full h-full grid place-items-center p-[8%] text-center overflow-hidden ${className}`} style={{ background: event.posterColor, color: textOn(event.posterColor) }} role="img" aria-label={`${event.title} (poster coming soon)`}>
-        <span className="display text-[15cqw] leading-[0.9] break-words" aria-hidden>
+        <span className="display text-[15cqw] break-any" aria-hidden>
           {event.shortTitle || event.title}
         </span>
       </div>
@@ -26,7 +31,11 @@ export function Poster({ event, size = 'lg', className = '', eager = false }: { 
   }
   return (
     <img
-      src={src}
+      src={img.src}
+      srcSet={img.srcSet}
+      sizes={sizes}
+      width={img.width}
+      height={img.height}
       alt={`${event.title} poster`}
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"

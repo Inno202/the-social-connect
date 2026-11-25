@@ -5,6 +5,7 @@ import { Logo } from './Logo';
 import { useCart } from '../lib/cart';
 import { useAuth, can } from '../lib/auth';
 import { PARTNERS } from '../data/site';
+import { useBackClose } from './ui';
 
 const NAV = [
   { to: '/events', label: 'Events' },
@@ -19,53 +20,48 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const loc = useLocation();
   useEffect(() => setOpen(false), [loc.pathname]);
+  useBackClose(open, () => setOpen(false));
+  const links = [...NAV, ...(can.dashboard(profile?.role) ? [{ to: '/dashboard', label: 'Dashboard' }] : [])];
 
   return (
     <header className="bg-ink text-white sticky top-0 z-50">
       <a href="#main" className="skip-link">Skip to content</a>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center min-h-[44px]" aria-label="MSB Events home">
-          <Logo />
+      <div className="wrap h-[68px] flex items-center justify-between gap-4">
+        <Link to="/" className="flex items-center min-h-[44px] shrink-0" aria-label="MSB Events home">
+          <Logo className="h-10 w-auto" />
         </Link>
         <nav aria-label="Main" className="hidden md:flex items-center gap-1">
-          {NAV.map((n) => (
+          {links.map((n) => (
             <NavLink
               key={n.to}
               to={n.to}
-              className={({ isActive }) =>
-                `px-4 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] rounded-full transition-colors ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`
-              }
+              className={({ isActive }) => `px-4 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`}
             >
               {n.label}
             </NavLink>
           ))}
-          {can.dashboard(profile?.role) && (
-            <NavLink to="/dashboard" className={({ isActive }) => `px-4 min-h-[44px] inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] ${isActive ? 'text-lime' : 'text-white/85 hover:text-lime'}`}>
-              Dashboard
-            </NavLink>
-          )}
         </nav>
         <div className="flex items-center gap-1">
-          <Link to="/cart" className="icon-btn relative hover:bg-white/10" aria-label={count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}>
-            <ShoppingBag className="size-5" aria-hidden />
+          <Link to="/cart" className="icon-btn icon-btn-ghost-light relative" aria-label={count ? `Cart, ${count} item${count === 1 ? '' : 's'}` : 'Cart'}>
+            <ShoppingBag aria-hidden />
             {count > 0 && (
-              <span className="absolute top-1 right-0.5 min-w-[20px] h-[20px] px-1 rounded-full bg-lime text-ink text-[11px] font-bold grid place-items-center num" aria-hidden>
+              <span className="absolute top-0.5 right-0 min-w-[20px] h-[20px] px-1 rounded-full bg-lime text-ink text-xs font-bold grid place-items-center num" aria-hidden>
                 {count}
               </span>
             )}
           </Link>
-          <Link to={user ? '/profile' : '/account'} className="icon-btn hover:bg-white/10" aria-label={user ? 'My tickets and account' : 'Sign in'}>
-            <UserRound className="size-5" aria-hidden />
+          <Link to={user ? '/profile' : '/account'} className="icon-btn icon-btn-ghost-light" aria-label={user ? 'My tickets and account' : 'Sign in'}>
+            <UserRound aria-hidden />
           </Link>
-          <button type="button" className="icon-btn md:hidden hover:bg-white/10" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
-            {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
+          <button type="button" className="icon-btn icon-btn-ghost-light md:hidden" aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'} onClick={() => setOpen(!open)}>
+            {open ? <X aria-hidden /> : <Menu aria-hidden />}
           </button>
         </div>
       </div>
       {open && (
-        <nav id="mobile-nav" aria-label="Main" className="md:hidden border-t border-white/10 px-4 pb-4">
-          {[...NAV, ...(can.dashboard(profile?.role) ? [{ to: '/dashboard', label: 'Dashboard' }] : [])].map((n) => (
-            <NavLink key={n.to} to={n.to} className={({ isActive }) => `display block py-3 text-3xl ${isActive ? 'text-lime' : 'text-white'}`}>
+        <nav id="mobile-nav" aria-label="Main" className="md:hidden border-t border-white/10 wrap pb-4">
+          {links.map((n) => (
+            <NavLink key={n.to} to={n.to} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
               {n.label}
             </NavLink>
           ))}
@@ -85,16 +81,16 @@ export function AgeNotice({ className = '' }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer className="bg-ink text-white mt-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-14 grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
-        <div>
-          <Logo />
+    <footer className="bg-ink text-white mt-20 md:mt-28">
+      <div className="wrap py-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="sm:col-span-2 lg:col-span-1">
+          <Logo className="h-11 w-auto" />
           <p className="mt-5 max-w-[34ch] text-white/75">Events from Matjhabeng, Welkom, in the Free State. More than 5 years of MSB Events.</p>
           <AgeNotice className="mt-5 text-white/75 max-w-[44ch]" />
         </div>
         <div>
           <h2 className="eyebrow text-lime">Explore</h2>
-          <ul className="mt-4 space-y-1">
+          <ul className="mt-4">
             {[['/events', 'Events'], ['/gallery', 'Gallery'], ['/about', 'About'], ['/profile', 'My tickets']].map(([to, l]) => (
               <li key={to}><Link to={to} className="inline-flex min-h-[44px] min-w-[44px] items-center text-white/85 hover:text-lime">{l}</Link></li>
             ))}
@@ -108,9 +104,9 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row gap-2 sm:items-center justify-between text-sm text-white/70">
+        <div className="wrap py-4 flex flex-col sm:flex-row gap-2 sm:items-center justify-between text-sm text-white/70">
           <p>© {new Date().getFullYear()} MSB Events</p>
-          <ul className="flex flex-wrap gap-x-2">
+          <ul className="flex flex-wrap gap-x-2 -mx-2">
             {[['/terms', 'Terms'], ['/privacy', 'Privacy'], ['/cookies', 'Cookies']].map(([to, l]) => (
               <li key={to}><Link to={to} className="inline-flex min-h-[44px] items-center px-2 hover:text-lime">{l}</Link></li>
             ))}
@@ -141,11 +137,23 @@ export function PageHero({ title }: { title: string }) {
   const last = words.pop();
   return (
     <div className="px-3 sm:px-4 pt-3 sm:pt-4">
-      <div className="rounded-[2rem] bg-ink text-white px-6 sm:px-10 pt-24 sm:pt-32 pb-8 sm:pb-10">
-        <h1 className="display text-5xl sm:text-7xl md:text-8xl hero-rise max-w-7xl mx-auto">
-          <span>{words.join(' ')}{words.length ? ' ' : ''}<span className="text-lime">{last}</span></span>
+      <div className="band px-6 sm:px-10 pt-20 sm:pt-28 pb-8 sm:pb-10">
+        <h1 className="t-hero hero-rise max-w-7xl mx-auto">
+          <span className="block">{words.join(' ')}{words.length ? ' ' : ''}<span className="text-lime">{last}</span></span>
         </h1>
       </div>
+    </div>
+  );
+}
+
+/** A plain page title (404, sign in) with an optional eyebrow. */
+export function PlainTitle({ title, eyebrow }: { title: string; eyebrow?: string }) {
+  const words = title.split(' ');
+  const last = words.pop();
+  return (
+    <div>
+      {eyebrow && <p className="eyebrow text-ink-soft mb-3">{eyebrow}</p>}
+      <h1 className="t-title">{words.join(' ')}{words.length ? ' ' : ''}<span className="text-leaf">{last}</span></h1>
     </div>
   );
 }

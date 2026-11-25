@@ -4,20 +4,20 @@ import { ArrowRight } from 'lucide-react';
 import { HeroSlideshow } from '../components/HeroSlideshow';
 import { EventCard, EventCardSkeleton } from '../components/EventCard';
 import { CalendarRow } from '../components/CalendarRow';
-import { useEvents, useGallery, posterSrc } from '../lib/data';
+import { useEvents, useGallery, posterImg } from '../lib/data';
 import { filterEvents } from '../lib/eventState';
 import { CALENDAR_2026, HERO_SLIDES, PARTNERS } from '../data/site';
 import { useTitle } from '../lib/useTitle';
 
-function SectionHead({ title, accent, to, linkLabel }: { title: string; accent: string; to?: string; linkLabel?: string }) {
+function SectionHead({ id, title, accent, to, linkLabel }: { id: string; title: string; accent: string; to?: string; linkLabel?: string }) {
   return (
     <div className="flex items-end justify-between gap-4 mb-8">
-      <h2 className="display text-5xl sm:text-6xl">
+      <h2 id={id} className="t-section">
         {title} <span className="text-leaf">{accent}</span>
       </h2>
       {to && (
         <Link to={to} className="hidden sm:inline-flex btn btn-outline shrink-0">
-          {linkLabel} <ArrowRight className="size-4 btn-arrow" aria-hidden />
+          {linkLabel} <ArrowRight className="btn-arrow" aria-hidden />
         </Link>
       )}
     </div>
@@ -38,54 +38,57 @@ export default function Home() {
     <>
       <HeroSlideshow slides={HERO_SLIDES} />
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 md:pt-24" aria-labelledby="upcoming">
-        <div id="upcoming"><SectionHead title="Upcoming" accent="events" to="/events" linkLabel="All events" /></div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="upcoming">
+        <SectionHead id="upcoming" title="Upcoming" accent="events" to="/events" linkLabel="All events" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3" data-card-grid>
           {loading && [0, 1, 2].map((n) => <EventCardSkeleton key={n} />)}
-          {upcoming.slice(0, 6).map((e, n) => <EventCard key={e.id} event={e} eager={n < 2} />)}
+          {upcoming.slice(0, 6).map((e) => <EventCard key={e.id} event={e} />)}
         </div>
-        {!loading && upcoming.length === 0 && <p className="text-ink-soft">No events on sale right now. New dates are added here as soon as they are announced.</p>}
-        <Link to="/events" className="sm:hidden mt-6 btn btn-outline btn-block">All events <ArrowRight className="size-4 btn-arrow" aria-hidden /></Link>
+        {!loading && upcoming.length === 0 && <p className="text-ink-soft prose-w">No events on sale right now. New dates are added here as soon as they are announced.</p>}
+        <Link to="/events" className="sm:hidden mt-6 btn btn-outline btn-block">All events <ArrowRight className="btn-arrow" aria-hidden /></Link>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 md:pt-28" aria-labelledby="calendar">
-        <div id="calendar"><SectionHead title="The MSB calendar" accent="2026" /></div>
-        {calendar.length > 0 ? <CalendarRow events={calendar} /> : <div className="h-40 rounded-3xl bg-mist animate-pulse" />}
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="calendar">
+        <SectionHead id="calendar" title="The MSB calendar" accent="2026" />
+        {calendar.length > 0 ? <CalendarRow events={calendar} /> : <div className="h-40 rounded-[var(--radius-xl)] bg-mist animate-pulse" />}
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 md:pt-28">
-        <div className="rounded-[2rem] bg-ink text-white p-8 sm:p-12 md:p-16 grid gap-8 md:grid-cols-[1.2fr_1fr] items-end">
-          <h2 className="display text-5xl sm:text-7xl">
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="made-in">
+        <div className="band p-8 sm:p-12 md:p-16 grid gap-8 md:grid-cols-[1.2fr_1fr] items-end">
+          <h2 id="made-in" className="t-section">
             Made in <span className="text-lime">Matjhabeng</span>
           </h2>
-          <div>
-            <p className="text-white/85 text-lg max-w-[46ch]">
+          <div className="min-w-0">
+            <p className="text-white/85 text-lg md:text-xl max-w-[30rem]">
               MSB Events is the team from Welkom in the Free State behind the Blow festivals, the MSB Fun Walk & Family Day and
               MSB Comedy Night. 2026 marks more than 5 years of MSB Events.
             </p>
-            <Link to="/about" className="btn btn-lime mt-6">About MSB Events <ArrowRight className="size-4 btn-arrow" aria-hidden /></Link>
+            <Link to="/about" className="btn btn-accent mt-6">About MSB Events <ArrowRight className="btn-arrow" aria-hidden /></Link>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 md:pt-28" aria-labelledby="gallery-teaser">
-        <div id="gallery-teaser"><SectionHead title="The" accent="gallery" to="/gallery" linkLabel="Open the gallery" /></div>
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="gallery-teaser">
+        <SectionHead id="gallery-teaser" title="The" accent="gallery" to="/gallery" linkLabel="Open the gallery" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {(gallery ?? []).slice(0, 4).map((g) => (
-            <Link key={g.id} to="/gallery" className="group frame aspect-square block">
-              <img src={posterSrc(g.src, 'sm')} alt={g.alt} loading="lazy" className="photo-zoom w-full h-full object-cover" />
-            </Link>
-          ))}
-          {!gallery && [0, 1, 2, 3].map((n) => <div key={n} className="aspect-square rounded-3xl bg-mist animate-pulse" />)}
+          {(gallery ?? []).slice(0, 4).map((g) => {
+            const img = posterImg(g.src);
+            return (
+              <Link key={g.id} to="/gallery" className="group frame aspect-square block">
+                {img && <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 768px) 25vw, 50vw" width={img.width} height={img.height} alt={g.alt} loading="lazy" decoding="async" className="photo-zoom w-full h-full object-cover" />}
+              </Link>
+            );
+          })}
+          {!gallery && [0, 1, 2, 3].map((n) => <div key={n} className="aspect-square rounded-[var(--radius-xl)] bg-mist animate-pulse" />)}
         </div>
-        <Link to="/gallery" className="sm:hidden mt-6 btn btn-outline btn-block">Open the gallery <ArrowRight className="size-4 btn-arrow" aria-hidden /></Link>
+        <Link to="/gallery" className="sm:hidden mt-6 btn btn-outline btn-block">Open the gallery <ArrowRight className="btn-arrow" aria-hidden /></Link>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 md:pt-28" aria-labelledby="partners">
-        <h2 id="partners" className="display text-4xl sm:text-5xl mb-6">Our <span className="text-leaf">partners</span></h2>
-        <ul className="flex flex-wrap gap-2">
+      <section className="wrap pt-20 md:pt-28" aria-labelledby="partners">
+        <h2 id="partners" className="t-section mb-6">Our <span className="text-leaf">partners</span></h2>
+        <ul className="even-row [--even-min:9rem]">
           {PARTNERS.map((p) => (
-            <li key={p} className="rounded-full border border-line px-4 py-2.5 text-sm font-semibold">{p}</li>
+            <li key={p} className="rounded-full border border-line px-4 min-h-[44px] flex items-center justify-center text-center text-sm font-semibold">{p}</li>
           ))}
         </ul>
       </section>
