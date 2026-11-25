@@ -14,7 +14,7 @@ function Doc({ title, children }: { title: string; children: ReactNode }) {
   useTitle(title);
   return (
     <>
-      <PageHero title={title} />
+      <PageHero title={title} photo="/photos/soulfulblow-aerial-sunset" position="center" />
       <article className="legal wrap-read py-12 md:py-16 space-y-6 text-lg leading-relaxed">
         <p className="text-sm num">Last updated {LEGAL_UPDATED}</p>
         {children}

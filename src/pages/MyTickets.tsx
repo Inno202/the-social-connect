@@ -184,7 +184,7 @@ export default function MyTickets() {
 
   return (
     <>
-      <PageHero title="My tickets" />
+      <PageHero title="My tickets" photo="/photos/festival-performer-waving-night" position="center 45%" />
       <div className="wrap max-w-2xl py-12 md:py-16">
         {fromCache && tickets && tickets.length > 0 && (
           <p className="mb-4 inline-flex items-center gap-2 text-sm text-ink-soft"><WifiOff className="size-4" aria-hidden /> Showing tickets saved on this device.</p>

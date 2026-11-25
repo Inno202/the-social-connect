@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { qrDataUrl } from './qr';
-import { posterSrc } from './data';
+import { asset, posterSrc } from './data';
 import { longDate, rands } from './format';
 import type { Ticket } from './types';
 
@@ -27,6 +27,24 @@ async function coverJpeg(url: string, ratio: number, widthPx = 520): Promise<str
   }
 }
 
+/** Loads a local PNG (keeps its transparency) as a data URL for the PDF. */
+async function pngData(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((done) => {
+      const r = new FileReader();
+      r.onload = () => done(typeof r.result === 'string' ? r.result : null);
+      r.onerror = () => done(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+const LOGO_RATIO = 304 / 132;
+
 /** Ticket PDF: poster on the left, details and holder in the middle, QR on the right. */
 export async function ticketPdf(t: Ticket): Promise<Blob> {
   const W = 210;
@@ -39,19 +57,21 @@ export async function ticketPdf(t: Ticket): Promise<Blob> {
   else {
     doc.setFillColor(11, 11, 12);
     doc.rect(0, 0, posterW, H, 'F');
-    doc.setTextColor(163, 230, 53);
-    doc.setFont('helvetica', 'bolditalic');
-    doc.setFontSize(26);
-    doc.text('MSB', posterW / 2, H / 2, { align: 'center' });
+    const white = await pngData(asset('/brand/msb-logo-white.png'));
+    if (white) doc.addImage(white, 'PNG', (posterW - 40) / 2, (H - 40 / LOGO_RATIO) / 2, 40, 40 / LOGO_RATIO);
   }
 
   // Middle: details and holder
   const x = posterW + 8;
   const mid = 146 - x - 6;
-  doc.setTextColor(85, 85, 90);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('M S B   E V E N T S', x, 11);
+  const logo = await pngData(asset('/brand/msb-logo-black.png'));
+  if (logo) doc.addImage(logo, 'PNG', x, 4.5, 6 * LOGO_RATIO, 6);
+  else {
+    doc.setTextColor(85, 85, 90);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.text('M S B   E V E N T S', x, 11);
+  }
   doc.setTextColor(11, 11, 12);
   doc.setFont('helvetica', 'bolditalic');
   doc.setFontSize(15);

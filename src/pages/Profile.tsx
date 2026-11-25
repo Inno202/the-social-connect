@@ -81,7 +81,7 @@ export default function Profile() {
   if (!user) return <Navigate to="/account?next=/profile" replace />;
   return (
     <>
-      <PageHero title="Your profile" />
+      <PageHero title="Your profile" photo="/photos/festival-crowd-denim" position="center 40%" />
       <div className="wrap max-w-2xl py-12 md:py-16">
         <p className="mb-6 text-ink-soft">Your tickets are on the <Link to="/tickets" className="link">Tickets</Link> page.</p>
         <AccountPanel />

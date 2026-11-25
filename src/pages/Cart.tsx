@@ -42,7 +42,7 @@ export default function Cart() {
 
   return (
     <>
-      <PageHero title="Your cart" />
+      <PageHero title="Your cart" photo="/photos/springblow-crowd-night-barrier" position="center 60%" />
       <div className="wrap max-w-3xl py-12 md:py-16">
         {loading && <div className="space-y-3" role="status" aria-label="Loading cart"><Skeleton className="h-40" /><Skeleton className="h-24" /></div>}
         {!loading && byEvent.length === 0 && (

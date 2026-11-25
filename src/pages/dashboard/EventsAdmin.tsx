@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Copy, Pencil, XCircle } from 'lucide-react';
 import { useState } from 'react';
-import { useEvents, STATIC_EVENTS } from '../../lib/data';
+import { useEvents, useGallery, STATIC_EVENTS, STATIC_GALLERY } from '../../lib/data';
 import { isPast } from '../../lib/eventState';
 import { shortDate } from '../../lib/format';
 import { Poster } from '../../components/Poster';
@@ -15,7 +15,10 @@ export default function EventsAdmin() {
   const nav = useNavigate();
   const list = [...(events ?? [])].sort((a, b) => b.startsAt.localeCompare(a.startsAt));
   const [importing, setImporting] = useState(false);
+  const gallery = useGallery();
   const missing = events ? STATIC_EVENTS.filter((s) => !events.some((e) => e.id === s.id)).length : 0;
+  const missingPhotos = gallery ? STATIC_GALLERY.filter((s) => !gallery.some((g) => g.id === s.id)).length : 0;
+  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
   return (
     <div>
@@ -24,11 +27,11 @@ export default function EventsAdmin() {
         <Link to="new" className="btn btn-primary shrink-0">New event</Link>
       </div>
       {loading && <div className="space-y-3"><Skeleton className="h-24" /><Skeleton className="h-24" /></div>}
-      {!loading && missing > 0 && (
+      {!loading && (missing > 0 || missingPhotos > 0) && (
         <div className="panel p-6 mb-6 flex flex-col sm:flex-row sm:items-center gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold">{missing === STATIC_EVENTS.length ? 'The live database is empty' : `${missing} built-in events are not in the database`}</h3>
-            <p className="text-sm text-ink-soft">Load the MSB events from the 2026 posters (with their ticket types) and the poster gallery. Events already there are left as they are.</p>
+            <h3 className="font-bold">{missing === STATIC_EVENTS.length ? 'The live database is empty' : `${[missing && plural(missing, 'MSB event'), missingPhotos && plural(missingPhotos, 'gallery photo')].filter(Boolean).join(' and ')} not loaded yet`}</h3>
+            <p className="text-sm text-ink-soft">Load the MSB events (with their ticket types), the posters and the event photos into the gallery. Anything already there is left as it is.</p>
           </div>
           <button
             type="button"

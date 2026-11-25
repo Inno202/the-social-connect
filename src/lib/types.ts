@@ -112,8 +112,6 @@ export interface GalleryItem {
   /** 0 when the year is not known. */
   year: number;
   order: number;
-  /** Event photos that ship with the site (public/photos); always shown, not stored in the database. */
-  builtIn?: boolean;
 }
 
 export interface CartLine {

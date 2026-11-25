@@ -24,7 +24,7 @@ export default function Events() {
 
   return (
     <>
-      <PageHero title="Events" />
+      <PageHero title="Events" photo="/photos/festival-stage-view-day" position="center 60%" />
       <div className="wrap py-12 md:py-16">
         <div role="group" aria-label="Show events" className="even-row [--even-min:7rem]" data-chips>
           {CHIPS.map((c) => (

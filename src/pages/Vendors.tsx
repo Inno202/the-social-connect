@@ -94,7 +94,7 @@ export default function Vendors() {
 
   return (
     <>
-      <PageHero title="Become a vendor" />
+      <PageHero title="Become a vendor" photo="/photos/festival-crowd-chairs" position="center 40%" />
       <div className="wrap max-w-2xl py-12 md:py-16">
         {sent ? (
           <div className="band p-8 sm:p-10 ticket-in" role="status">

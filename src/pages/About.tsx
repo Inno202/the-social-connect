@@ -11,7 +11,7 @@ export default function About() {
   const img = posterImg('/photos/festival-aerial-night');
   return (
     <>
-      <PageHero title="About MSB Events" />
+      <PageHero title="About MSB Events" photo="/photos/festival-crowd-day-stage" position="center 65%" />
       <div className="wrap py-20 md:py-28 grid gap-14 lg:grid-cols-[1.3fr_1fr] items-start">
         <div className="space-y-12 text-lg min-w-0">
           <section>

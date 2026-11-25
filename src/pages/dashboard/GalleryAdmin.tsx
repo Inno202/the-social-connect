@@ -104,11 +104,11 @@ export default function GalleryAdmin() {
               <div className="frame aspect-square">
                 {img && <img src={img.src} srcSet={img.srcSet} sizes="(min-width: 768px) 25vw, 50vw" width={img.width} height={img.height} alt={g.alt} className="w-full h-full object-cover" loading="lazy" decoding="async" />}
               </div>
-              <p className="mt-1 text-sm font-semibold line-clamp-1">{g.group} {g.year > 0 ? g.year : ''}{g.builtIn && <span className="text-ink-soft font-normal"> · built in</span>}</p>
-              {!g.builtIn && <button type="button" className="icon-btn icon-btn-light absolute top-2 right-2 text-danger" aria-label={`Remove photo: ${g.alt}`} onClick={async () => {
+              <p className="mt-1 text-sm font-semibold line-clamp-1">{g.group} {g.year > 0 ? g.year : ''}</p>
+              <button type="button" className="icon-btn icon-btn-light absolute top-2 right-2 text-danger" aria-label={`Remove photo: ${g.alt}`} onClick={async () => {
                 if (!db || !(await confirmAction({ title: 'Remove this photo?', message: 'It will no longer show in the gallery.', confirmLabel: 'Remove photo', tone: 'danger' }))) return;
                 try { await deleteDoc(doc(db, 'gallery', g.id)); await logActivity('Removed gallery photo', g.group, g.alt); toast('Photo removed.'); } catch { toast('The photo could not be removed.', 'error'); }
-              }}><Trash2 aria-hidden /></button>}
+              }}><Trash2 aria-hidden /></button>
             </li>
           );
         })}

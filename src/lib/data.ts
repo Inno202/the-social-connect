@@ -7,9 +7,7 @@ import imageSizes from '../data/imageSizes.json';
 import type { GalleryItem, MsbEvent, TicketType } from './types';
 
 export const STATIC_EVENTS = staticEvents as unknown as MsbEvent[];
-export const STATIC_GALLERY = (staticGallery as GalleryItem[]).map((g) => (g.src.startsWith('/photos/') ? { ...g, builtIn: true } : g));
-/** Event photos that ship with the site: shown on every gallery, with or without the database. */
-const BUILT_IN_PHOTOS = STATIC_GALLERY.filter((g) => g.builtIn);
+export const STATIC_GALLERY = staticGallery as GalleryItem[];
 
 export function toEvent(id: string, d: DocumentData): MsbEvent {
   return {
@@ -137,13 +135,12 @@ export function useGallery() {
     return onSnapshot(
       collection(db, 'gallery'),
       (snap) =>
-        setItems([
-          ...snap.docs.map((d) => {
+        setItems(
+          snap.docs.map((d) => {
             const x = d.data();
             return { id: d.id, src: x.src, alt: x.alt ?? '', group: x.group ?? '', year: x.year ?? 0, order: x.order ?? 0 };
           }),
-          ...BUILT_IN_PHOTOS.filter((p) => !snap.docs.some((d) => d.id === p.id)),
-        ]),
+        ),
       () => setItems(STATIC_GALLERY),
     );
   }, []);

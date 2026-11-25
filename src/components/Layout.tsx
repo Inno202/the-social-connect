@@ -6,6 +6,7 @@ import { useCart } from '../lib/cart';
 import { useAuth, can } from '../lib/auth';
 import { PARTNERS } from '../data/site';
 import { useBackClose } from './ui';
+import { posterImg } from '../lib/data';
 
 const NAV = [
   { to: '/', label: 'Home' },
@@ -149,12 +150,19 @@ export function Layout({ children }: { children: ReactNode }) {
 }
 
 /** Inner page header: a rounded black band with the title at its foot, last word in lime. Title only. */
-export function PageHero({ title }: { title: string }) {
+/** Page title band with an event photo behind it (darkened so the title always reads). */
+export function PageHero({ title, photo = '/photos/festival-crowd-night-green', position = 'center' }: { title: string; photo?: string; position?: string }) {
   const words = title.split(' ');
   const last = words.pop();
+  const img = posterImg(photo);
   return (
     <div className="px-3 sm:px-4 pt-3 sm:pt-4">
-      <div className="band px-6 sm:px-10 pt-20 sm:pt-28 pb-8 sm:pb-10">
+      <div className="band relative isolate px-6 sm:px-10 pt-32 sm:pt-44 pb-8 sm:pb-10">
+        {img && (
+          <img src={img.src} srcSet={img.srcSet} sizes="100vw" width={img.width} height={img.height} alt="" aria-hidden
+            className="absolute inset-0 -z-10 w-full h-full object-cover" style={{ objectPosition: position }} decoding="async" {...{ fetchpriority: 'high' }} />
+        )}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-ink via-ink/70 to-ink/25" aria-hidden />
         <h1 className="t-hero hero-rise max-w-7xl mx-auto">
           <span className="block">{words.join(' ')}{words.length ? ' ' : ''}<span className="text-lime">{last}</span></span>
         </h1>

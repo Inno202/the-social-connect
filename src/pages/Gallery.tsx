@@ -31,7 +31,7 @@ export default function Gallery() {
 
   return (
     <>
-      <PageHero title="Gallery" />
+      <PageHero title="Gallery" photo="/photos/festival-crowd-rain-sunset" position="center 70%" />
       <div className="wrap py-12 md:py-16 space-y-14">
         {!items && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" aria-hidden>

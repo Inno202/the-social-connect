@@ -9,7 +9,7 @@ Choices made while building, so they can be changed later. Everything visual is 
 - **Fonts.** Headings: Barlow Condensed ExtraBold Italic (800), in capitals, short, in the spirit of the posters. Reading text and interface: Barlow (400 to 700). Both from Google Fonts.
 - **Where the Bokamoso style was overridden on purpose:** you asked for slanted capital headings, so headings are italic and upper case (Bokamoso says upright, sentence case, no italics). Reading text stays upright with no italics anywhere. Inner page headers are solid black bands instead of photo bands, because there are no event photos yet.
 - **Event colours stay on the posters.** The site frame is black, white and lime; posters bring the colour. When an event has no poster (Spin Blow 2026) a plain block in its poster colour (blue `#1D4FBF`) shows the name, with black or white text chosen for contrast.
-- **Logo.** No logo file was supplied, so the header and footer use a text logo: "MSB" with "EVENTS" spaced out underneath (`src/components/Logo.tsx`). Swap in the real file when you send it.
+- **Logo.** The MSB Events logo you supplied (white lettering on blue) has had the blue removed. It ships as a transparent white version (header, footer, app icons, ticket PDF without a poster) and a black version (ticket PDF), in `public/brand/msb-logo-*.png`, with the original kept in `reference/brand/`.
 - **Hero slideshow.** No crowd or stage photos were supplied. Until they are, the slides are crops of the artist line-ups from your Spring Blow and Soulful Blow 2026 posters and the MSB Weekend 2024 poster (`public/brand/hero-*.webp`). No text or buttons are placed on the slides; only pause and dots.
 - **Gallery.** Until event photos arrive, it shows your posters, grouped by event and year.
 

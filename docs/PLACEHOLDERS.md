@@ -1,7 +1,7 @@
 
 ## Event photos (added 25 November 2026)
 
-47 photos supplied by MSB Events are in `public/photos` (originals in `reference/photos`). They ship with the site and always show in the gallery.
+47 photos supplied by MSB Events are in `public/photos` (originals in `reference/photos`). They go into the gallery database like the posters: an admin presses **Load MSB events** in Dashboard → Events, and can then remove any of them in Dashboard → Gallery. Page title bands (Events, Gallery, About, Become a vendor, Cart, My tickets, Profile, legal pages) use some of these photos as backgrounds.
 Labels come only from what is visible in the photos:
 - **Fun Walk 2025**: the shirts say "MSB Fun Walk & Family Day 2025".
 - **Soulful Blow 2026** and **Spring Blow 2026 activations**: the photos carry those logos.
