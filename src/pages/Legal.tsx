@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { PageHero } from '../components/Layout';
 import { useTitle } from '../lib/useTitle';
 
-export const LEGAL_UPDATED = '25 November 2026';
+export const LEGAL_UPDATED = '27 November 2026';
 
 /** Visible marker for details MSB Events still has to supply before launch. */
 function ToAdd({ children }: { children: ReactNode }) {
@@ -45,6 +45,8 @@ export function Terms() {
         <li>Free tickets (for example at activations) work the same way and are still scanned at the door.</li>
         <li>Releases open in order and can sell out. A gate price shown on an event is for information only and is not sold online.</li>
         <li>One account can hold up to 20 tickets for one event.</li>
+        <li>You can send an unused ticket to a friend with a one-time transfer link from My tickets. When your friend claims it, they get a new ticket in their name with a new QR code and your ticket is cancelled, so your old QR code no longer works. A link works once and expires after 7 days; you can cancel it until it is used. Only send tickets to people you know: MSB Events cannot get back a ticket you sent by mistake.</li>
+        <li>When many people buy at the same moment, checkout may show a waiting screen and try again automatically. Your cart stays saved; leaving the waiting screen does not issue tickets.</li>
         <li>MSB Events plans to sell paid tickets on this site. That will only start once a payment provider is connected and these terms are updated.</li>
         <li>Promo codes are not available yet.</li>
       </ul>
@@ -103,6 +105,8 @@ export function Privacy() {
         <li><strong>Your account:</strong> your name and email address. If you sign up with a password, it is stored only by Google Firebase Authentication in hashed form; we never see it. If you sign in with Google, Google shares your name and email address with us (we do not use your Google photo or contacts).</li>
         <li><strong>Guest names:</strong> names you enter for the seats of a VIP table are stored on those tickets and shown to door staff when the ticket is scanned.</li>
         <li><strong>Your tickets and orders:</strong> the event, ticket type, quantity, the name on the ticket (your account name), the date issued, and whether and when the ticket was scanned at the door.</li>
+        <li><strong>Ticket transfers:</strong> when you make a transfer link we store the ticket's details and your name, so your friend sees who sent it. After a claim we keep a note on both tickets of where they came from.</li>
+        <li><strong>Notify lists:</strong> if you tap "Notify me when tickets go on sale", we store your name, account email and the event, so MSB Events can tell you when tickets open. You can undo it on the event page at any time.</li>
         <li><strong>Vendor applications:</strong> if you apply to sell at an event, your business name, contact person, phone number, email, what you sell, the events you chose, whether you need electricity and any link you give. You do not need an account to apply.</li>
         <li><strong>Staff:</strong> for staff accounts, their role and a log of actions taken in the dashboard (for example editing an event or scanning a ticket).</li>
       </ul>
@@ -114,6 +118,7 @@ export function Privacy() {
         <li>To limit how many tickets one account can hold and to stop forged or copied tickets.</li>
         <li>To give event staff attendee lists and counts for the events they run.</li>
         <li>To contact vendors about stall space, fees and set-up. Only MSB event staff can see applications.</li>
+        <li>To tell people on a notify list when tickets go on sale. Only MSB event staff can see these lists.</li>
       </ul>
 
       <h2>Who handles it for us</h2>
@@ -121,18 +126,18 @@ export function Privacy() {
         <li><strong>Google Firebase</strong> (Authentication and Cloud Firestore) stores accounts, tickets and orders. Data may be stored outside South Africa.</li>
         <li><strong>Google sign-in</strong>, if you choose it, handles signing you in with your Google account.</li>
         <li><strong>GitHub Pages</strong> hosts the website files; like any web host, it receives your browser's IP address when pages load.</li>
-        <li><strong>Google Fonts</strong> serves the site's fonts, so your browser's IP address reaches Google when the page loads.</li>
         <li><strong>Cloudinary</strong> stores event posters and gallery photos uploaded by staff.</li>
         <li><strong>Google reCAPTCHA</strong> (through Firebase App Check), when switched on, checks that sign-ups and checkouts come from real people.</li>
         <li><strong>Outside ticket sellers</strong> such as Computicket handle their own sales under their own privacy policies. We receive nothing from them through this site.</li>
-        <li>The Google Maps link on an event page only contacts Google if you tap it.</li>
+        <li>The Google Maps, Google Calendar and WhatsApp buttons on an event page only contact those services if you tap them.</li>
+        <li>The site's fonts are served from this website itself, not from a font service.</li>
       </ul>
 
       <h2>How long we keep it</h2>
       <p>
         Your account is kept until you delete it. Ticket and order records are kept after an event for our event records and to answer questions
         about entry, for <ToAdd>MSB Events to set a retention period</ToAdd>. Vendor applications are kept while MSB Events plans its events and
-        deleted on request.
+        deleted on request. A notify-list entry is kept until tickets go on sale for that event or you remove it, whichever comes first.
       </p>
 
       <h2>Your rights</h2>

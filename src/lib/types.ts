@@ -94,6 +94,9 @@ export interface Ticket {
   createdAt?: unknown;
   usedAt?: unknown;
   usedBy?: string;
+  /** Set on a ticket passed to a friend (the claim code) and on the friend's copy (the old ticket id). */
+  transferredTo?: string;
+  transferredFrom?: string;
 }
 
 export interface UserProfile {

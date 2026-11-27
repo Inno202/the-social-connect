@@ -4,6 +4,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { assertFails, assertSucceeds, initializeTestEnvironment, type RulesTestEnvironment } from '@firebase/rules-unit-testing';
 import { Timestamp, doc, getDoc, setDoc, updateDoc, writeBatch, serverTimestamp, collection, getDocs, query, where, addDoc, deleteDoc, type Firestore } from 'firebase/firestore';
 import { issueLine } from '../../src/lib/checkout';
+import { createTransfer, claimTransfer, cancelTransfer } from '../../src/lib/transfer';
+import type { Ticket } from '../../src/lib/types';
 
 let env: RulesTestEnvironment;
 const now = Date.now();
@@ -304,3 +306,102 @@ describe('vendor applications', () => {
   });
 });
 
+
+describe('ticket transfers', () => {
+  async function aliceTicket() {
+    await issueLine(as('alice'), 'alice', 'Alice', { eventId: 'ev', typeId: 'r2', qty: 1 });
+    let t: Ticket | null = null;
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const s = await getDocs(query(collection(ctx.firestore() as unknown as Firestore, 'tickets'), where('uid', '==', 'alice')));
+      t = { id: s.docs[0].id, ...s.docs[0].data() } as unknown as Ticket;
+    });
+    return t as unknown as Ticket;
+  }
+
+  /** The claim's three writes without the app's friendly checks, so only the rules decide. */
+  function rawClaim(db: Firestore, code: string, t: Ticket, uid: string) {
+    const b = writeBatch(db);
+    const { id: _id, ...rest } = t as Ticket & { createdAt?: unknown };
+    void _id;
+    b.set(doc(db, 'tickets', `${code}_0`), { ...rest, uid, holderName: uid, status: 'valid', createdAt: serverTimestamp(), transferredFrom: t.id });
+    b.update(doc(db, 'tickets', t.id), { status: 'cancelled', transferredTo: code });
+    b.delete(doc(db, 'transfers', code));
+    return b.commit();
+  }
+
+  it('a friend claims a ticket once: new ticket for them, old one cancelled, code used up', async () => {
+    const t = await aliceTicket();
+    const code = await createTransfer(as('alice'), t, 'Alice');
+    const newId = await assertSucceeds(claimTransfer(as('bob'), code, 'bob', 'Bob'));
+    let res: Awaited<ReturnType<typeof getDoc>>[] = [];
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore() as unknown as Firestore;
+      res = await Promise.all([getDoc(doc(db, 'tickets', newId)), getDoc(doc(db, 'tickets', t.id)), getDoc(doc(db, 'transfers', code))]);
+    });
+    const [mine, old, tr] = res as unknown as { data: () => Record<string, unknown> | undefined; exists: () => boolean }[];
+    expect(mine.data()?.uid).toBe('bob');
+    expect(mine.data()?.holderName).toBe('Bob');
+    expect(old.data()?.status).toBe('cancelled');
+    expect(tr.exists()).toBe(false);
+    await assertFails(rawClaim(as('super'), code, t, 'super'));
+  });
+
+  it('only the owner makes a code, only for a valid ticket, with true copies of its details', async () => {
+    const t = await aliceTicket();
+    await assertFails(createTransfer(as('bob'), { ...t, uid: 'bob' }, 'Bob'));
+    await assertFails(setDoc(doc(as('alice'), 'transfers', 'ABCDEFGHJKLMNPQRSTUVWXYZab'), {
+      ticketId: t.id, fromUid: 'alice', fromName: 'Alice', orderId: t.orderId, eventId: t.eventId, typeId: t.typeId, typeName: 'VIP table for 8',
+      seatLabel: t.seatLabel, eventTitle: t.eventTitle, eventStartsAt: t.eventStartsAt, venue: t.venue, poster: t.poster, price: t.price,
+      createdAt: serverTimestamp(), expiresAt: Timestamp.fromMillis(Date.now() + 864e5),
+    }));
+    await assertFails(setDoc(doc(as('alice'), 'transfers', 'ABCDEFGHJKLMNPQRSTUVWXYZac'), {
+      ticketId: t.id, fromUid: 'alice', fromName: 'Alice', orderId: t.orderId, eventId: t.eventId, typeId: t.typeId, typeName: t.typeName,
+      seatLabel: t.seatLabel, eventTitle: t.eventTitle, eventStartsAt: t.eventStartsAt, venue: t.venue, poster: t.poster, price: t.price,
+      createdAt: serverTimestamp(), expiresAt: Timestamp.fromMillis(Date.now() + 30 * 864e5),
+    }));
+  });
+
+  it('nobody can take a ticket without the code, or cancel someone else’s ticket', async () => {
+    const t = await aliceTicket();
+    await assertFails(updateDoc(doc(as('bob'), 'tickets', t.id), { status: 'cancelled', transferredTo: 'NOPENOPENOPENOPENOPENOPE' }));
+    await assertFails(setDoc(doc(as('bob'), 'tickets', 'NOPENOPENOPENOPENOPENOPE_0'), { ...t, uid: 'bob', status: 'valid', createdAt: serverTimestamp(), transferredFrom: t.id }));
+  });
+
+  it('a cancelled code cannot be claimed, and an owner cannot claim their own', async () => {
+    const t = await aliceTicket();
+    const code = await createTransfer(as('alice'), t, 'Alice');
+    await assertFails(rawClaim(as('alice'), code, t, 'alice'));
+    await assertSucceeds(cancelTransfer(as('alice'), code));
+    await assertFails(rawClaim(as('bob'), code, t, 'bob'));
+    const fresh = await createTransfer(as('alice'), t, 'Alice');
+    await assertSucceeds(rawClaim(as('bob'), fresh, t, 'bob'));
+  });
+
+  it('a used ticket cannot be passed on', async () => {
+    const t = await aliceTicket();
+    const code = await createTransfer(as('alice'), t, 'Alice');
+    await env.withSecurityRulesDisabled(async (ctx) => updateDoc(doc(ctx.firestore() as unknown as Firestore, 'tickets', t.id), { status: 'used' }));
+    await assertFails(rawClaim(as('bob'), code, t, 'bob'));
+  });
+});
+
+describe('notify me when tickets go on sale', () => {
+  const entry = (uid: string, over: Record<string, unknown> = {}) => ({ uid, eventId: 'ev', email: `${uid}@test.msb`, name: uid, createdAt: serverTimestamp(), ...over });
+  it('a signed-in person adds themselves once, with their own email', async () => {
+    await assertSucceeds(setDoc(doc(as('alice'), 'notify', 'ev_alice'), entry('alice')));
+    await assertFails(setDoc(doc(as('alice'), 'notify', 'ev_bob'), entry('bob')));
+    await assertFails(setDoc(doc(as('bob'), 'notify', 'ev_bob'), entry('bob', { email: 'someone@else.com' })));
+    await assertFails(setDoc(doc(anon(), 'notify', 'ev_x'), entry('x')));
+    await assertFails(setDoc(doc(as('bob'), 'notify', 'draft_bob'), entry('bob', { eventId: 'draft' })));
+  });
+  it('only event staff read the list; people see and remove only their own entry', async () => {
+    await setDoc(doc(as('alice'), 'notify', 'ev_alice'), entry('alice'));
+    await assertSucceeds(getDoc(doc(as('alice'), 'notify', 'ev_alice')));
+    await assertFails(getDoc(doc(as('bob'), 'notify', 'ev_alice')));
+    await assertFails(getDocs(collection(as('bob'), 'notify')));
+    await assertSucceeds(getDocs(collection(as('manager'), 'notify')));
+    await assertFails(getDocs(collection(as('finance'), 'notify')));
+    await assertFails(deleteDoc(doc(as('bob'), 'notify', 'ev_alice')));
+    await assertSucceeds(deleteDoc(doc(as('alice'), 'notify', 'ev_alice')));
+  });
+});

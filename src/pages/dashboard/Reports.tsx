@@ -29,12 +29,14 @@ export default function Reports() {
   const ev = sold.find((e) => e.id === eventId);
   const types = ev?.ticketTypes ?? [];
   const scanned = tickets?.filter((t) => t.status === 'used').length ?? 0;
+  // A ticket passed to a friend shows as two records (the cancelled original and the friend's copy): count it once.
+  const issued = tickets?.filter((t) => !(t.status === 'cancelled' && t.transferredTo)).length ?? 0;
   const value = types.reduce((n, t) => n + t.price * t.sold, 0);
 
   function exportCsv() {
     if (!tickets || !ev) return;
     const head = ['Holder', 'Ticket type', 'Seat', 'Status', 'Scanned at', 'Ticket code', 'Order'];
-    const rows = tickets.map((t) => [t.holderName, t.typeName, t.seatLabel, t.status, t.usedAt ? new Date((t.usedAt as Timestamp).toMillis()).toISOString() : '', t.id, t.orderId]);
+    const rows = tickets.map((t) => [t.holderName, t.typeName, t.seatLabel, t.status === 'cancelled' && t.transferredTo ? 'transferred' : t.status, t.usedAt ? new Date((t.usedAt as Timestamp).toMillis()).toISOString() : '', t.id, t.orderId]);
     const csv = [head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     const a = document.createElement('a');
@@ -61,7 +63,7 @@ export default function Reports() {
         <>
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 items-stretch">
             {[
-              ['Tickets issued', tickets ? String(tickets.length) : '…'],
+              ['Tickets issued', tickets ? String(issued) : '…'],
               ['Scanned in', tickets ? String(scanned) : '…'],
               ['Still to arrive', tickets ? String(tickets.filter((t) => t.status === 'valid').length) : '…'],
               ['Ticket value (not charged)', randsPlain(value)],

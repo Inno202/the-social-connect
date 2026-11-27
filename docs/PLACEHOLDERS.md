@@ -10,3 +10,11 @@ Labels come only from what is visible in the photos:
 - **"MSB events"**: performer, DJ and crowd shots whose event and year are not known.
 
 Please send the correct event and year for any undated photo, along with artist names if you want captions to name performers.
+
+## Switches waiting on you (27 November 2026)
+
+- **reCAPTCHA site key** for App Check (free): see docs/DECISIONS.md, "App Check".
+- **Cloudinary** cloud name, unsigned upload preset and folder: needed for photo uploads in the dashboard.
+- **Google Search Console:** add the site and submit `https://inno202.github.io/the-social-connect/sitemap.xml`.
+- **Paid items left for later, as agreed:** payments, ticket emails, Blaze plan / Cloud Functions (server queue and
+  sharded counters), backups, Firebase Hosting, custom domain, Wallet passes, SMS two-step login for staff.

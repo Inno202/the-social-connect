@@ -17,11 +17,13 @@ Built in the Bokamoso style: React, Vite, Tailwind 4 and TypeScript, with Fireba
 | --- | --- |
 | Home: photo slideshow, upcoming events, the MSB calendar 2026, about, gallery teaser, partners | `src/pages/Home.tsx` |
 | Events list with Upcoming / Festivals / Activations / Family / Past chips (events move to Past 12 hours after the start) | `src/pages/Events.tsx`, `src/lib/eventState.ts` |
-| Event page: poster, title card, date and venue card, Buy button (or "Buy on Computicket"), Info / Line up / Venue tabs | `src/pages/EventPage.tsx` |
+| Event page: poster, title card with countdown, date and venue card, Buy button (or "Buy on Computicket", or "Notify me" when tickets are coming soon), Add to calendar, Directions, WhatsApp and Share, Info / Line up / Venue tabs | `src/pages/EventPage.tsx`, `src/components/EventActions.tsx`, `NotifyMe.tsx`, `Countdown.tsx` |
 | Tickets step (releases, VIP tables, free tickets, sold out / coming soon, gate price, promo code row switched off), cart, checkout (Tickets → Details → Pay → Success) | `src/pages/Tickets.tsx`, `Cart.tsx`, `Checkout.tsx`, `src/lib/checkout.ts` |
-| My tickets with QR codes and PDF download; account (name, password, delete) | `src/pages/Profile.tsx`, `src/lib/pdf.ts` |
+| My tickets with QR codes, PDF download and "Send to a friend" (one-time transfer link, claimed at `/claim/<code>`); profile (name, password, delete) | `src/pages/MyTickets.tsx`, `Claim.tsx`, `Profile.tsx`, `src/lib/transfer.ts`, `src/lib/pdf.ts` |
+| Busy-sale waiting room: checkout retries automatically behind a "You are in the line" screen | `src/lib/queue.ts`, `src/components/WaitingRoom.tsx` |
+| Search and sharing: per-page head tags, schema.org Event data, sitemap.xml, robots.txt | `src/lib/seo.ts`, `scripts/prerender.mjs` |
 | Gallery with full-screen viewer | `src/pages/Gallery.tsx`, `src/components/PhotoViewer.tsx` |
-| Dashboard by role: events (create, edit, duplicate, cancel, releases, VIP tables, free tickets, outside link, poster, line-up), reports with attendee CSV, gallery, users and roles, activity log | `src/pages/dashboard/` |
+| Dashboard by role: events (create, edit, duplicate, cancel, releases, VIP tables, free tickets, outside link, poster, line-up), reports with attendee CSV, gallery, vendor applications, notify lists (CSV export), users and roles, activity log | `src/pages/dashboard/` |
 | Door scanner (camera or typed code, offline, one camera at a time) | `src/pages/Scanner.tsx`, `src/lib/scan.ts` |
 | Terms, Privacy (POPIA), Cookies | `src/pages/Legal.tsx` |
 | Database rules | `firestore.rules` |

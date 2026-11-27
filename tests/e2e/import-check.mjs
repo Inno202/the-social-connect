@@ -24,7 +24,7 @@ await page.getByLabel('Password', { exact: true }).fill('msb-test-pass');
 await page.locator('form button[type=submit]').click();
 await page.getByText('The live database is empty').waitFor({ timeout: 15000 });
 await page.getByRole('button', { name: 'Load MSB events' }).click();
-await page.getByText('Loaded 9 events and 9 gallery photos.').waitFor({ timeout: 30000 }).then(() => ok(true, 'admin loads the 9 built-in events and 9 gallery photos through the rules'), () => ok(false, 'load built-in content'));
+await page.getByText('Loaded 9 events and 58 gallery photos.').waitFor({ timeout: 30000 }).then(() => ok(true, 'admin loads the 9 built-in events and 58 gallery photos through the rules'), () => ok(false, 'load built-in content'));
 await page.goto(`${ROOT}/events`);
 await page.getByText('Matjhabeng Summer Blow 2026').waitFor({ timeout: 15000 }).then(() => ok(true, 'the events page now lists Summer Blow from the database'), () => ok(false, 'events after import'));
 ok(await page.getByText('Tables from R3,000').isVisible(), 'ticket types came across (Tables from R3,000)');

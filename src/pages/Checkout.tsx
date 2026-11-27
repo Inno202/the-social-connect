@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Info } from 'lucide-react';
 import { Steps } from '../components/Steps';
@@ -9,6 +9,8 @@ import { useAuth } from '../lib/auth';
 import { db } from '../lib/firebase';
 import { cart, useCart } from '../lib/cart';
 import { issueLine, CheckoutError } from '../lib/checkout';
+import { withQueue, QueueLeft, QueueTimeout, type WaitInfo } from '../lib/queue';
+import { WaitingRoom } from '../components/WaitingRoom';
 import { rands, randsPlain } from '../lib/format';
 import { useTitle } from '../lib/useTitle';
 
@@ -50,6 +52,8 @@ export default function Checkout() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [guests, setGuests] = useState<Record<string, string[]>>({});
   const [busy, setBusy] = useState(false);
+  const [wait, setWait] = useState<WaitInfo | null>(null);
+  const leave = useRef<AbortController | null>(null);
   const [issued, setIssued] = useState(0);
   const [failed, setFailed] = useState<string[]>([]);
 
@@ -84,16 +88,23 @@ export default function Checkout() {
 
   async function confirm() {
     if (!db || !user) return;
+    const fs = db;
     setBusy(true);
+    leave.current = new AbortController();
     const fails: string[] = [];
     let count = 0;
     for (const p of priced) {
+      if (leave.current.signal.aborted) break;
       try {
-        const r = await issueLine(db, user.uid, name.trim(), { eventId: p.event.id, typeId: p.type.id, qty: p.qty }, guests[`${p.event.id}|${p.type.id}`] ?? []);
+        // Busy moments: tried again automatically behind a waiting screen instead of failing.
+        const r = await withQueue(
+          () => issueLine(fs, user.uid, name.trim(), { eventId: p.event.id, typeId: p.type.id, qty: p.qty }, guests[`${p.event.id}|${p.type.id}`] ?? []),
+          { onWait: setWait, signal: leave.current.signal },
+        );
         count += r.tickets;
         cart.set(p.event.id, p.type.id, 0);
       } catch (err) {
-        fails.push(err instanceof CheckoutError ? err.message : `${p.type.name}: could not be issued. Please try again.`);
+        fails.push(err instanceof CheckoutError || err instanceof QueueTimeout || err instanceof QueueLeft ? err.message : `${p.type.name}: could not be issued. Please try again.`);
       }
     }
     setBusy(false);
@@ -105,6 +116,7 @@ export default function Checkout() {
 
   return (
     <div className="wrap max-w-5xl py-8 md:py-12">
+      <WaitingRoom wait={wait} onLeave={() => leave.current?.abort()} />
       <div className="max-w-3xl"><Steps current={stage} /></div>
 
       {stage === 'Details' && (

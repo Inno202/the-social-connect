@@ -321,3 +321,9 @@
   .animate-spin, .animate-pulse { animation-duration: 1.5s !important; animation-iteration-count: infinite !important; }
   * { transition-property: color, background-color, border-color, opacity, box-shadow !important; }
 }
+
+/* Waiting room equaliser: seven lime bars bouncing; still for people who prefer less motion. */
+.eq { display: flex; align-items: flex-end; justify-content: center; gap: 6px; height: 64px; }
+.eq span { width: 10px; height: 100%; border-radius: 9999px; background: var(--color-lime); transform-origin: bottom; animation: eq-bounce 1s ease-in-out infinite; }
+@keyframes eq-bounce { 0%, 100% { transform: scaleY(.25); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .eq span { animation: none; transform: scaleY(.6); } }

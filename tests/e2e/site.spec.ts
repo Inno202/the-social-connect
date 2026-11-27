@@ -160,7 +160,7 @@ test('sign up, buy general tickets and a VIP table, claim a free ticket, downloa
   expect(ticketCode).toMatch(/_\d+$/);
   await page.waitForTimeout(500);
   await shot(page, 'ticket-open-desktop', false);
-  const [download] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: 'Download PDF ticket' }).click()]);
+  const [download] = await Promise.all([page.waitForEvent('download'), modal.getByRole('button', { name: /Download PDF/ }).click()]);
   mkdirSync('test-results', { recursive: true });
   await download.saveAs('test-results/ticket.pdf');
   await modal.getByRole('button', { name: 'Close' }).click();

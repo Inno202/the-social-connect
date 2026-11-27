@@ -111,9 +111,9 @@ async function rolePages(browser: Browser, email: string, paths: string[], tag: 
 
 test('signed in as each role, at every width', async ({ browser }) => {
   test.setTimeout(240_000);
-  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/users', '/dashboard/activity', '/profile', '/tickets'], 'super admin');
+  await rolePages(browser, 'super@msb.test', ['/dashboard/events', '/dashboard/events/demo-test-night-2026', '/dashboard/events/new', '/dashboard/reports', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/notify', '/dashboard/users', '/dashboard/activity', '/profile', '/tickets'], 'super admin');
   await rolePages(browser, 'admin@msb.test', ['/dashboard/events', '/dashboard/reports', '/dashboard/gallery'], 'admin');
-  await rolePages(browser, 'manager@msb.test', ['/dashboard/events', '/dashboard/gallery', '/dashboard/vendors'], 'event manager');
+  await rolePages(browser, 'manager@msb.test', ['/dashboard/events', '/dashboard/gallery', '/dashboard/vendors', '/dashboard/notify'], 'event manager');
   await rolePages(browser, 'finance@msb.test', ['/dashboard/reports', '/scan'], 'finance');
   await rolePages(browser, 'scanner@msb.test', ['/dashboard', '/scan'], 'scanner');
 });

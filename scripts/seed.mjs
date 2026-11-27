@@ -83,6 +83,23 @@ const DEMO = [
       { id: 'free', group: 'Free tickets', name: 'Free ticket', price: 0, seats: 1, includes: ['Entry to the activation'], capacity: 100, sold: 0, order: 1, prevId: null, comingSoon: false },
     ],
   },
+  {
+    ...base,
+    id: 'demo-coming-soon-2026',
+    title: 'Test Coming Soon (demo event)',
+    shortTitle: 'Test Soon',
+    category: 'festival',
+    startsAt: '2026-12-19T12:00:00+02:00',
+    venue: 'Demo venue',
+    address: 'For testing only',
+    poster: '',
+    posterColor: '#0B0B0C',
+    description: 'A demo event whose tickets are not on sale yet, only in the local test database. Not a real MSB event.',
+    sellMode: 'site',
+    ticketTypes: [
+      { id: 'g', group: 'General', name: 'General', price: 200, seats: 1, includes: ['General entry'], capacity: 100, sold: 0, order: 1, prevId: null, comingSoon: true },
+    ],
+  },
 ];
 
 const STAFF = [

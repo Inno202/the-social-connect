@@ -124,8 +124,9 @@ export function useEvent(id: string | undefined) {
   }, [id]);
 
   if (!db) return { event, loading: false };
-  if (event === undefined) return { event: undefined, loading: true };
-  return { event: event ? { ...event, ticketTypes: types ?? [] } : null, loading: types === null && !!event };
+  // While the live copy loads, show the built-in copy (same as the pre-rendered page) so nothing jumps.
+  if (event === undefined) return staticMatch ? { event: staticMatch, loading: true } : { event: undefined, loading: true };
+  return { event: event ? { ...event, ticketTypes: types ?? staticMatch?.ticketTypes ?? [] } : null, loading: types === null && !!event };
 }
 
 export function useGallery() {

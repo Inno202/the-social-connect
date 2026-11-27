@@ -28,7 +28,7 @@ await page.getByRole('heading', { name: 'Your cart', exact: true }).waitFor().th
 
 // Google sign-in: the button is offered. (The popup itself needs apis.google.com, which the test sandbox blocks.)
 await page.goto(`${ROOT}/account`);
-ok(await page.getByRole('button', { name: 'Continue with Google' }).isVisible(), 'Continue with Google is offered on the sign-in page');
+await page.getByRole('button', { name: 'Continue with Google' }).waitFor({ timeout: 15000 }).then(() => ok(true, 'Continue with Google is offered on the sign-in page'), () => ok(false, 'Continue with Google is offered on the sign-in page'));
 // Email sign-in and a staff page work under the sub-path
 await page.getByLabel('Email').fill('manager@msb.test');
 await page.getByLabel('Password', { exact: true }).fill('msb-test-pass');

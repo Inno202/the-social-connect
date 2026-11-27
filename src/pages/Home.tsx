@@ -5,6 +5,7 @@ import { HeroSlideshow } from '../components/HeroSlideshow';
 import { EventCard, EventCardSkeleton } from '../components/EventCard';
 import { CalendarRow } from '../components/CalendarRow';
 import { useEvents, useGallery, posterImg } from '../lib/data';
+import { Countdown } from '../components/Countdown';
 import { filterEvents } from '../lib/eventState';
 import { longDate } from '../lib/format';
 import { CALENDAR_2026, HERO_SLIDES, PARTNERS } from '../data/site';
@@ -38,6 +39,11 @@ export default function Home() {
     return (chosen.length === 4 ? chosen : [...photos, ...all]).slice(0, 4);
   }, [gallery]);
   const upcoming = useMemo(() => (events ? filterEvents(events, 'upcoming') : []), [events]);
+  // The soonest event that has not started yet (for the countdown).
+  const next = useMemo(
+    () => [...upcoming].filter((e) => e.status !== 'cancelled' && !e.timeTbc && new Date(e.startsAt).getTime() > Date.now()).sort((a, b) => a.startsAt.localeCompare(b.startsAt))[0],
+    [upcoming],
+  );
   const summer = events?.find((e) => e.id === 'summer-blow-2026');
   const summerImg = posterImg(summer?.poster || '/posters/summer-blow-2026');
   const calendar = useMemo(
@@ -51,6 +57,15 @@ export default function Home() {
 
       <section className="wrap pt-10 md:pt-12" aria-labelledby="upcoming">
         <SectionHead id="upcoming" title="Upcoming" accent="events" to="/events" linkLabel="All events" />
+        {next && (
+          <Link to={`/events/${next.id}`} className="tap-card panel p-4 sm:p-5 mb-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+            <span className="min-w-0 flex-1">
+              <span className="eyebrow text-ink-soft block">Next up</span>
+              <span className="t-card block mt-1 break-any">{next.title}</span>
+            </span>
+            <Countdown to={next.startsAt} label="Starts in" className="shrink-0 [&>p:first-child]:sr-only" />
+          </Link>
+        )}
         {/* Same grid as the gallery below: the posters are exactly the size of the gallery photos. */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3" data-card-grid>
           {loading && [0, 1, 2, 3].map((n) => <EventCardSkeleton key={n} compact />)}

@@ -12,6 +12,8 @@ import { isPast } from '../lib/eventState';
 import { longDate, rands } from '../lib/format';
 import type { Ticket } from '../lib/types';
 import { useTitle } from '../lib/useTitle';
+import { cancelTransfer, createTransfer, myTransfers } from '../lib/transfer';
+import { whatsappLink } from '../lib/calendar';
 
 const cacheKey = (uid: string) => `msb-tickets-${uid}`;
 
@@ -54,6 +56,7 @@ function Qr({ id, className, size }: { id: string; className?: string; size: num
 }
 
 function statusOf(t: Ticket) {
+  if (t.status === 'cancelled' && t.transferredTo) return { label: 'Sent to a friend', cls: 'bg-mist text-ink' };
   if (t.status === 'cancelled') return { label: 'Cancelled', cls: 'bg-danger text-white' };
   if (t.status === 'used') return { label: 'Used', cls: 'bg-ink-soft text-white' };
   if (isPast({ startsAt: t.eventStartsAt })) return { label: 'Past', cls: 'bg-mist text-ink' };
@@ -83,13 +86,78 @@ function TicketCard({ t, onOpen }: { t: Ticket; onOpen: () => void }) {
   );
 }
 
+/** Send a ticket to a friend: a one-time link. When the friend claims it they get a new ticket with a new QR code,
+ *  and this one is cancelled, so an old screenshot cannot be used at the gate. */
+function TransferBox({ t, open, setOpen }: { t: Ticket; open: boolean; setOpen: (v: boolean) => void }) {
+  const { profile } = useAuth();
+  const [link, setLink] = useState<{ code: string; url: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    let live = true;
+    setLink(null);
+    setOpen(false);
+    if (!db) return;
+    void myTransfers(db, t.uid).then((list) => {
+      const mine = list.find((x) => x.ticketId === t.id && x.expiresAt.toMillis() > Date.now());
+      if (live && mine) { setLink({ code: mine.code, url: claimUrl(mine.code) }); setOpen(true); }
+    }).catch(() => undefined);
+    return () => { live = false; };
+  }, [t.id, t.uid, setOpen]);
+
+  async function make() {
+    if (!db) return;
+    setBusy(true);
+    try {
+      const code = await createTransfer(db, t, profile?.name ?? t.holderName);
+      setLink({ code, url: claimUrl(code) });
+    } catch { toast('The link could not be made. Try again.', 'error'); } finally { setBusy(false); }
+  }
+  async function cancel() {
+    if (!db || !link) return;
+    setBusy(true);
+    try { await cancelTransfer(db, link.code); setLink(null); toast('Link cancelled. The ticket stays yours.'); } catch { toast('The link could not be cancelled.', 'error'); } finally { setBusy(false); }
+  }
+  async function copy() {
+    if (!link) return;
+    try { await navigator.clipboard.writeText(link.url); toast('Link copied.'); } catch { toast('Select the link and copy it.', 'error'); }
+  }
+
+  if (!open) return null;
+
+  return (
+    <section className="rounded-2xl bg-mist p-4 space-y-3" aria-labelledby="transfer-title">
+      <h3 id="transfer-title" className="font-bold">Send to a friend</h3>
+      {!link ? (
+        <>
+          <p className="text-sm text-ink-soft">Your friend opens the link, signs in and gets a new ticket with a new QR code. This ticket then stops working.</p>
+          <button type="button" className="btn btn-outline btn-block" disabled={busy} onClick={make}>{busy && <Spinner label="Making the link" />} Make a transfer link</button>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-ink-soft">Send this link to one friend only. It works once and expires after 7 days. Until it is used, the ticket is still yours.</p>
+          <p className="field font-mono text-sm break-all select-all" aria-label="Transfer link">{link.url}</p>
+          <div className="even-row [--even-min:7rem]">
+            <button type="button" className="btn btn-outline" onClick={copy}>Copy link</button>
+            <a className="btn btn-outline" href={whatsappLink(`Here is your ticket for ${t.eventTitle}: ${link.url}`)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            <button type="button" className="btn btn-danger" disabled={busy} onClick={cancel}>Cancel link</button>
+          </div>
+        </>
+      )}
+    </section>
+  );
+}
+
+const claimUrl = (code: string) => `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/claim/${code}`;
+
 /** The opened ticket: a compact card that fits on a phone screen, QR big enough to scan, poster shown whole. */
 function TicketDialog({ t, onClose }: { t: Ticket | null; onClose: () => void }) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
   const [holder, setHolder] = useState('');
   const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
   useEffect(() => { setEditing(false); setHolder(t?.holderName ?? ''); }, [t?.id, t?.holderName]);
+  useEffect(() => { setSending(false); }, [t?.id]);
   const s = t ? statusOf(t) : null;
   const canRename = !!t && t.status === 'valid' && !isPast({ startsAt: t.eventStartsAt });
 
@@ -100,6 +168,10 @@ function TicketDialog({ t, onClose }: { t: Ticket | null; onClose: () => void })
       labelledBy="ticket-title"
       footer={
         t && (
+          <div className={canRename && !sending ? 'even-cols' : ''}>
+          {canRename && !sending && (
+            <button type="button" className="btn btn-outline" onClick={() => setSending(true)} aria-expanded="false">Send to a friend</button>
+          )}
           <button
             type="button"
             className="btn btn-primary btn-block"
@@ -113,8 +185,9 @@ function TicketDialog({ t, onClose }: { t: Ticket | null; onClose: () => void })
               } catch { toast('The PDF could not be made. Try again.', 'error'); } finally { setBusy(false); }
             }}
           >
-            {busy && <Spinner label="Making the PDF" />} Download PDF ticket
+            {busy && <Spinner label="Making the PDF" />} {canRename && !sending ? 'Download PDF' : 'Download PDF ticket'}
           </button>
+          </div>
         )
       }
     >
@@ -165,6 +238,7 @@ function TicketDialog({ t, onClose }: { t: Ticket | null; onClose: () => void })
             </div>
             <div className="col-span-2 min-w-0"><dt className="text-ink-soft">Code</dt><dd className="font-mono text-sm break-all">{t.id}</dd></div>
           </dl>
+          {canRename && <TransferBox t={t} open={sending} setOpen={setSending} />}
         </div>
       )}
     </Dialog>

@@ -142,7 +142,8 @@ export default function Scanner() {
         liveStream = stream;
         const v = videoRef.current!;
         v.srcObject = stream;
-        void v.play();
+        // play() is cut short when the camera view closes mid-start (switching camera, leaving): that is expected, not an error.
+        v.play().catch(() => undefined);
         setCamState('on');
         const tick = (ts: number) => {
           if (cancelled) return;

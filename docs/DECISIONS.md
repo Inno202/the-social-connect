@@ -72,3 +72,50 @@ The Bokamoso rules applied across the whole site. Everything shared is in `src/i
 - **Chunks:** Firebase in its own chunk (the public pages need it for live events, so it still loads there); the PDF maker loads only on "Download PDF"; the QR reader only on the scanner. The My tickets page went from 437 KB to 36 KB.
 - **Service worker:** pages are fetched from the network first (4 second limit), falling back to the saved copy or the app shell offline, so a new release shows on the next visit.
 - **Fonts:** Barlow Condensed 800 italic only (700 was unused) and Barlow 400 to 700.
+
+## 27 November 2026: launch polish
+
+- **Search and sharing.** Each pre-rendered page gets its own title, description, canonical link and Open Graph / Twitter
+  tags (event pages use the event poster as the share picture). Event pages carry schema.org `Event` data (date, venue,
+  prices, availability, line-up) and Home carries `Organization` data, so Google can show events in search. The build
+  writes `sitemap.xml` and `robots.txt`. On a `github.io` project address search engines only read `robots.txt` at
+  the domain root, so it takes effect once the site has its own domain; submit `sitemap.xml` in Google Search Console
+  meanwhile. Set `VITE_SITE_ORIGIN` (in `.env.production`) if the address changes.
+- **Event page.** Add to calendar (an `.ics` file for any calendar app, plus a Google Calendar link), Directions (Google
+  Maps), WhatsApp and native Share, and a countdown. Without a published end time the calendar entry ends when it
+  starts (no made-up end time); events with times to be announced become all-day entries. Home shows a countdown to
+  the next event under "Upcoming events".
+- **Notify me.** On events whose tickets are coming soon, a signed-in person can join a notify list (name and account
+  email, enforced by the rules). Staff see the lists in Dashboard → Notify lists, export a CSV and clear a list once
+  they have told people. No emails are sent by the site.
+- **Ticket transfer.** An owner makes a one-time link (28 random characters, valid 7 days, cancellable). The friend signs
+  in and claims it: in one transaction they get a new ticket with a new id (so a new QR code), the old ticket is
+  cancelled and the link is used up. A screenshot of the old QR code no longer gets in. The rules check every copied
+  field, so nothing can be changed on the way. Known limits: the friend's copy does not count towards the friend's
+  20-ticket limit (the sender's count is not reduced either), and a door phone that is offline and cached the old
+  ticket earlier could still show it as valid until it reconnects.
+- **Busy sale moments: the waiting room.** When many people check out at once, a purchase that fails because the
+  database is busy is tried again automatically after a growing, random wait (1.5 s, 3 s, 6 s, 12 s, then about 20 s,
+  each ±50%), for up to 4 minutes, behind a playful full-screen "You are in the line" screen. Real problems (sold
+  out, limit reached) show straight away and are never retried. This spreads retries out so the site does not fall
+  over, but it runs in the browser: it is not a server-enforced line.
+- **Sold counters (sharding): planned, not built.** Firestore handles about one sustained write per second on a
+  single document, and each ticket type has one `sold` counter. Splitting the counter into shards was considered,
+  but the security rules could not then check the exact total and the release order within Firestore's limit on
+  document reads per rule, so the strict checks (never oversell, 20 per account, releases in order) would be lost.
+  The plan for when payments are connected (which needs the Blaze plan and Cloud Functions anyway): tickets are issued
+  by a server function after the payment provider confirms payment; buyers join a server queue (a `queue` document
+  per buyer, admitted in order by the function); the function keeps sharded counters plus a reservation with a
+  10-minute hold, so the browser never writes counters at all. Until then the waiting room above covers busy moments.
+- **App Check (bot protection).** Already wired in code: it switches on when `VITE_RECAPTCHA_SITE_KEY` is set. To turn
+  it on: Google Cloud console → reCAPTCHA → create a v3 key for `inno202.github.io`; Firebase console → App Check →
+  register the web app with that key; put the site key in `.env.production`; publish; watch the App Check metrics for
+  a few days, then press Enforce for Cloud Firestore and Authentication.
+- **Fonts** are served from the site (Fontsource packages, latin letters only); Google Fonts is no longer contacted, and
+  the CSP no longer allows it.
+- **Server headers.** GitHub Pages does not send an `X-Powered-By` header, and its `Server` header says only
+  `GitHub.com` with no software version. GitHub controls these headers and no site hosted there can remove or
+  change them. If the site moves to Firebase Hosting or its own server: Firebase Hosting also sends no
+  `X-Powered-By` (the security headers are already in `firebase.json`); on nginx use `server_tokens off;` (and
+  `more_clear_headers Server;` with the headers-more module); on Apache use `ServerTokens Prod`, `ServerSignature Off`
+  and `Header unset X-Powered-By`; on Express use `app.disable('x-powered-by')`.

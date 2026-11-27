@@ -8,6 +8,8 @@ service cloud.firestore {
     function orderDoc(id) { return /databases/$(database)/documents/orders/$(id); }
     function eventDoc(id) { return /databases/$(database)/documents/events/$(id); }
     function holdingDoc(id) { return /databases/$(database)/documents/holdings/$(id); }
+    function ticketDoc(id) { return /databases/$(database)/documents/tickets/$(id); }
+    function transferDoc(id) { return /databases/$(database)/documents/transfers/$(id); }
     function userPath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
     function hasRole(roles) {
       return signedIn() && exists(userPath())
@@ -184,10 +186,38 @@ service cloud.firestore {
         && d.createdAt == request.time;
     }
 
+    // A ticket claimed with a transfer code: a copy of the friend's ticket for the claimer, with a new id
+    // (so a new QR code) "<code>_0". In the same transaction the old ticket is cancelled and the code used up,
+    // so a screenshot of the old QR code no longer gets anyone in.
+    function validTransferTicket(ticketId) {
+      let d = request.resource.data;
+      let parts = ticketId.split('_');
+      let code = parts[0];
+      let t = get(transferDoc(code)).data;
+      let old = get(ticketDoc(t.ticketId)).data;
+      return signedIn()
+        && parts.size() == 2 && parts[1] == '0'
+        && d.keys().hasOnly(['uid', 'orderId', 'eventId', 'typeId', 'typeName', 'seatLabel', 'holderName', 'eventTitle',
+            'eventStartsAt', 'venue', 'poster', 'price', 'status', 'createdAt', 'transferredFrom'])
+        && d.uid == request.auth.uid && request.auth.uid != old.uid
+        && old.uid == t.fromUid && old.status == 'valid'
+        && t.expiresAt > request.time
+        && d.transferredFrom == t.ticketId
+        && d.orderId == old.orderId && d.eventId == old.eventId && d.typeId == old.typeId && d.typeName == old.typeName
+        && d.seatLabel == old.seatLabel && d.eventTitle == old.eventTitle && d.eventStartsAt == old.eventStartsAt
+        && d.venue == old.venue && d.poster == old.poster && d.price == old.price
+        && str(d.holderName, 1, 80)
+        && d.status == 'valid'
+        && d.createdAt == request.time
+        && getAfter(ticketDoc(t.ticketId)).data.status == 'cancelled'
+        && getAfter(ticketDoc(t.ticketId)).data.transferredTo == code
+        && !existsAfter(transferDoc(code));
+    }
+
     match /tickets/{ticketId} {
       allow read: if signedIn() && (resource.data.uid == request.auth.uid
         || hasRole(['SUPER_ADMIN', 'ADMIN', 'EVENT_MANAGER', 'FINANCE', 'TICKET_SCANNER']));
-      allow create: if validTicket(ticketId);
+      allow create: if validTicket(ticketId) || validTransferTicket(ticketId);
       // Door scan: valid -> used, once, stamped with the scanner and the server time.
       allow update: if (
           doorStaff()
@@ -207,7 +237,73 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['holderName'])
           && resource.data.status == 'valid'
           && str(request.resource.data.holderName, 1, 80)
+        ) || (
+          // Claiming a transfer: the claimer cancels the friend's old ticket while creating their own copy.
+          signedIn() && request.auth.uid != resource.data.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'transferredTo'])
+          && resource.data.status == 'valid' && request.resource.data.status == 'cancelled'
+          && request.resource.data.transferredTo is string
+          && get(transferDoc(request.resource.data.transferredTo)).data.ticketId == ticketId
+          && get(transferDoc(request.resource.data.transferredTo)).data.fromUid == resource.data.uid
+          && get(transferDoc(request.resource.data.transferredTo)).data.expiresAt > request.time
+          && !existsAfter(transferDoc(request.resource.data.transferredTo))
+          && getAfter(ticketDoc(request.resource.data.transferredTo + '_0')).data.uid == request.auth.uid
         );
+    }
+
+    // ---------- Ticket transfers (one-time claim codes) ----------
+    // The owner makes a long random code for one valid ticket; whoever opens the link and signs in can claim it once.
+    // It holds a copy of the ticket's display fields so the claimer never needs to read the friend's ticket.
+    match /transfers/{code} {
+      allow get: if signedIn();
+      allow list: if signedIn() && resource.data.fromUid == request.auth.uid;
+      allow create: if signedIn()
+        && code.matches('^[A-Za-z0-9]{20,40}$')
+        && request.resource.data.keys().hasOnly(['ticketId', 'fromUid', 'fromName', 'orderId', 'eventId', 'typeId', 'typeName', 'seatLabel',
+            'eventTitle', 'eventStartsAt', 'venue', 'poster', 'price', 'createdAt', 'expiresAt'])
+        && request.resource.data.fromUid == request.auth.uid
+        && str(request.resource.data.fromName, 1, 80)
+        && request.resource.data.ticketId is string
+        && get(ticketDoc(request.resource.data.ticketId)).data.uid == request.auth.uid
+        && get(ticketDoc(request.resource.data.ticketId)).data.status == 'valid'
+        && request.resource.data.orderId == get(ticketDoc(request.resource.data.ticketId)).data.orderId
+        && request.resource.data.eventId == get(ticketDoc(request.resource.data.ticketId)).data.eventId
+        && request.resource.data.typeId == get(ticketDoc(request.resource.data.ticketId)).data.typeId
+        && request.resource.data.typeName == get(ticketDoc(request.resource.data.ticketId)).data.typeName
+        && request.resource.data.seatLabel == get(ticketDoc(request.resource.data.ticketId)).data.seatLabel
+        && request.resource.data.eventTitle == get(ticketDoc(request.resource.data.ticketId)).data.eventTitle
+        && request.resource.data.eventStartsAt == get(ticketDoc(request.resource.data.ticketId)).data.eventStartsAt
+        && request.resource.data.venue == get(ticketDoc(request.resource.data.ticketId)).data.venue
+        && request.resource.data.poster == get(ticketDoc(request.resource.data.ticketId)).data.poster
+        && request.resource.data.price == get(ticketDoc(request.resource.data.ticketId)).data.price
+        && request.time < get(eventDoc(request.resource.data.eventId)).data.closesAt
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(7, 'd');
+      // The owner can cancel the code; the claimer removes it while claiming.
+      allow delete: if signedIn() && (
+        resource.data.fromUid == request.auth.uid
+        || (getAfter(ticketDoc(code + '_0')).data.uid == request.auth.uid
+            && getAfter(ticketDoc(code + '_0')).data.transferredFrom == resource.data.ticketId)
+      );
+    }
+
+    // ---------- "Tell me when tickets go on sale" ----------
+    // One entry per account per event, with the account's own email. Staff read and export the list.
+    match /notify/{id} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'eventId', 'email', 'name', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.eventId is string
+        && id == request.resource.data.eventId + '_' + request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && str(request.resource.data.name, 1, 80)
+        && get(eventDoc(request.resource.data.eventId)).data.status == 'published'
+        && request.resource.data.createdAt == request.time;
+      allow get: if signedIn() && (resource == null || resource.data.uid == request.auth.uid || eventStaff());
+      allow list: if eventStaff();
+      allow delete: if signedIn() && (resource.data.uid == request.auth.uid || eventStaff());
     }
 
     // ---------- Gallery ----------

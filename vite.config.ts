@@ -14,10 +14,10 @@ function cspMeta(env: Record<string, string>): Plugin {
   const csp = [
     "default-src 'self'",
     "script-src 'self' https://apis.google.com https://www.gstatic.com https://www.google.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
     "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com",
-    `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://${authDomain} https://api.cloudinary.com https://res.cloudinary.com https://www.google.com https://fonts.googleapis.com https://fonts.gstatic.com${local}`,
+    `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://${authDomain} https://api.cloudinary.com https://res.cloudinary.com https://www.google.com${local}`,
     `frame-src https://${authDomain} https://accounts.google.com https://www.google.com${emu ? ' http://127.0.0.1:* http://localhost:*' : ''}`,
     "worker-src 'self'",
     "manifest-src 'self'",
@@ -74,11 +74,6 @@ export default defineConfig(({ mode }) => {
               urlPattern: ({ request }) => request.mode === 'navigate',
               handler: 'NetworkFirst',
               options: { cacheName: 'pages', networkTimeoutSeconds: 4, expiration: { maxEntries: 40 }, precacheFallback: { fallbackURL: `${base}index.html` } },
-            },
-            {
-              urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-              handler: 'StaleWhileRevalidate',
-              options: { cacheName: 'fonts', expiration: { maxEntries: 20 } },
             },
             {
               urlPattern: ({ url }) => url.origin === 'https://res.cloudinary.com',

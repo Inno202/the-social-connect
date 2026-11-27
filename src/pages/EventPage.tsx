@@ -10,6 +10,10 @@ import { canBuyOnSite, isPast } from '../lib/eventState';
 import { dateRange, longDate, randsPlain } from '../lib/format';
 import { CATEGORY_LABEL, type MsbEvent } from '../lib/types';
 import { useTitle } from '../lib/useTitle';
+import { addressLine, mapLink } from '../lib/place';
+import { Countdown } from '../components/Countdown';
+import { EventActions } from '../components/EventActions';
+import { NotifyMe } from '../components/NotifyMe';
 import NotFound from './NotFound';
 
 const TABS = ['Info', 'Line up', 'Venue'] as const;
@@ -19,15 +23,7 @@ function initials(name: string) {
   return name.replace(/[^A-Za-z0-9 &]/g, '').split(/\s+/).filter((w) => w && w !== '&').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 }
 
-/** Address line without repeating the town when the address already names it. */
-export function addressLine(e: Pick<MsbEvent, 'address' | 'town'>) {
-  if (!e.address) return e.town;
-  return e.town && !e.address.toLowerCase().includes(e.town.toLowerCase()) ? `${e.address}, ${e.town}` : e.address;
-}
-
-export function mapLink(e: MsbEvent) {
-  return e.mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.mapQuery)}` : '';
-}
+export { addressLine, mapLink } from '../lib/place';
 
 function LineUp({ event }: { event: MsbEvent }) {
   const [all, setAll] = useState(false);
@@ -87,13 +83,21 @@ export function BuyButton({ event }: { event: MsbEvent }) {
         Buy on {event.externalSeller || 'the seller’s site'} <ArrowUpRight className="btn-arrow text-lime" aria-hidden />
       </a>
     );
-  if (canBuyOnSite(event))
+  // Every release on this site still marked "coming soon": nothing to buy yet, so offer the notify list instead.
+  const sellable = (event.ticketTypes ?? []).filter((t) => t.capacity > 0);
+  const allSoon = sellable.length > 0 && sellable.every((t) => t.comingSoon);
+  if (canBuyOnSite(event) && !allSoon)
     return (
       <Link to={`/events/${event.id}/tickets`} className="btn btn-primary btn-lg btn-block">
         {(event.ticketTypes ?? []).every((t) => t.price === 0) ? 'Get free tickets' : 'Buy tickets'} <ArrowRight className="btn-arrow text-lime" aria-hidden />
       </Link>
     );
-  return <p className="status-bar" role="status">Tickets coming soon</p>;
+  return (
+    <div className="space-y-3">
+      <p className="status-bar" role="status">Tickets coming soon</p>
+      {event.sellMode === 'site' && event.status === 'published' && <NotifyMe event={event} />}
+    </div>
+  );
 }
 
 export default function EventPage() {
@@ -137,6 +141,7 @@ export default function EventPage() {
           <section className="panel p-6">
             <span className="pill bg-ink text-lime">{CATEGORY_LABEL[event.category]}</span>
             <h1 className="display text-4xl sm:text-5xl text-leaf mt-3">{event.title}</h1>
+            {event.status !== 'cancelled' && <Countdown to={event.startsAt} className="mt-4" />}
           </section>
 
           <section className="panel p-6 space-y-5" aria-label="When and where">
@@ -164,6 +169,7 @@ export default function EventPage() {
             <p className="text-sm text-ink-soft text-center num">At the gate {randsPlain(event.gatePrice)}. Gate tickets are not sold online.</p>
           )}
           {loading && <Skeleton className="h-6 w-40 mx-auto" />}
+          {!isPast(event) && event.status !== 'cancelled' && <EventActions event={event} />}
 
           <div className="pt-4">
             <div role="tablist" aria-label="Event details" className="even-cols">
