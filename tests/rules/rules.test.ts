@@ -323,6 +323,17 @@ describe('vendor applications', () => {
     const snap = await getDoc(doc(as('alice'), 'vendorApplications', ref.id));
     expect(snap.data()?.response).toBe('Stall 12, set-up from 10:00.');
   });
+  it('staff set a stall fee and mark it paid; vendors cannot', async () => {
+    const ref = await addDoc(collection(as('alice'), 'vendorApplications'), app({ uid: 'alice' }));
+    const base = { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp() };
+    await assertSucceeds(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { ...base, fee: 1500, feePaid: false }));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { ...base, fee: -5 }));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { ...base, fee: 'R1500' }));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { ...base, feePaid: 'yes' }));
+    await assertFails(updateDoc(doc(as('alice'), 'vendorApplications', ref.id), { feePaid: true }));
+    await assertFails(updateDoc(doc(as('finance'), 'vendorApplications', ref.id), { ...base, reviewedBy: 'finance', feePaid: true }));
+    await assertSucceeds(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { ...base, feePaid: true }));
+  });
 });
 
 

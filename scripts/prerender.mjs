@@ -32,7 +32,7 @@ writeFileSync(
 );
 writeFileSync(
   join(dist, 'robots.txt'),
-  ['User-agent: *', ...['/dashboard', '/scan', '/cart', '/checkout', '/profile', '/tickets', '/account', '/claim', '/vendors/applications'].map((p) => `Disallow: ${new URL(SITE).pathname.replace(/\/$/, '')}${p}`), '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'),
+  ['User-agent: *', ...['/dashboard', '/scan', '/cart', '/checkout', '/profile', '/tickets', '/account', '/claim'].map((p) => `Disallow: ${new URL(SITE).pathname.replace(/\/$/, '')}${p}`), '', `Sitemap: ${SITE}/sitemap.xml`, ''].join('\n'),
 );
 rmSync(join(process.cwd(), 'dist-ssr'), { recursive: true, force: true });
 console.log(`Pre-rendered ${n} public pages.`);

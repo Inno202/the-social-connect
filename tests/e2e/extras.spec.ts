@@ -148,7 +148,7 @@ test('a busy checkout shows the waiting room instead of an error, and the buyer 
   await a.ctx.close();
 });
 
-test('a signed-in vendor follows their application and reads the reply from MSB Events', async ({ browser }) => {
+test('a signed-in vendor follows their application on the vendor page: reply, stall fee and payment', async ({ browser }) => {
   const v = await signUp(browser, { name: 'Lindi Vendor', email: `vendor${stamp}@msb.test`, password: 'blow-2026-test' }, '/vendors');
   const page = v.page;
   await expect(page.getByText(/You are signed in, so you can follow this application/)).toBeVisible();
@@ -161,30 +161,46 @@ test('a signed-in vendor follows their application and reads the reply from MSB 
   await page.getByLabel(/MSB Events may keep these details/).check();
   await page.getByRole('button', { name: 'Send application' }).click();
   await expect(page.getByRole('heading', { name: /Application sent/ })).toBeVisible();
-  await page.getByRole('link', { name: /My applications/ }).first().click();
-  await page.waitForURL('**/vendors/applications');
-  await expect(page.getByText('Received')).toBeVisible();
+  await page.getByRole('button', { name: /Your applications/ }).click();
+  const mine = page.locator('#my-applications');
+  await expect(mine.getByText('Received')).toBeVisible();
+  await expect(page).toHaveURL(/\/vendors$/);
 
   const staff = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const sp = await staff.newPage();
   await signIn(sp, 'manager@msb.test', undefined, '/dashboard/vendors');
   await sp.goto('/dashboard/vendors');
   const card = sp.locator('li', { hasText: `Lindi's Kota ${stamp}` });
-  await card.getByLabel('Message to the vendor (optional)').fill('Stall 12, set-up from 10:00. Bring your own gas.');
+  await card.getByLabel('Message (optional)').fill('Stall 12, set-up from 10:00. Pay by EFT using your reference.');
+  await card.getByLabel('Stall fee in rand (optional)').fill('1500');
   await card.getByRole('button', { name: 'Approve' }).click();
-  await expect(sp.getByText(/approved\./)).toBeVisible();
-  await checkLayout(sp, 'vendors admin with message @1280');
-  await staff.close();
+  await sp.getByRole('button', { name: 'Approved' }).click();
+  const done = sp.locator('li', { hasText: `Lindi's Kota ${stamp}` });
+  await expect(done.getByText('R1,500 · Not paid')).toBeVisible();
+  await checkLayout(sp, 'vendors admin with reply @1280');
+  await checkA11y(sp, 'vendors admin with reply');
+  await shot(sp, 'dashboard-vendor-reply', false);
 
-  await page.reload();
+  // The vendor sees the reply and the fee on the vendor page.
+  await page.goto('/vendors');
   await settle(page, 1200);
-  await expect(page.getByText('Approved')).toBeVisible();
-  await expect(page.getByText('Stall 12, set-up from 10:00. Bring your own gas.')).toBeVisible();
-  await checkLayout(page, 'my applications @1280');
-  await checkA11y(page, 'my applications');
+  await page.getByRole('button', { name: /Your applications \(1\)/ }).click();
+  await expect(mine.getByText('Approved')).toBeVisible();
+  await expect(mine.getByText('Stall 12, set-up from 10:00. Pay by EFT using your reference.')).toBeVisible();
+  await expect(mine.getByText('R1,500')).toBeVisible();
+  await expect(mine.getByText('Not paid yet')).toBeVisible();
+  await expect(mine.getByText(/^V-[A-Z0-9]{6}$/)).toBeVisible();
+  await checkLayout(page, 'your applications @1280');
+  await checkA11y(page, 'your applications');
+
+  // Staff mark it paid; the vendor sees Paid.
+  await done.getByRole('button', { name: 'Mark as paid' }).click();
+  await expect(done.getByText('R1,500 · Paid')).toBeVisible();
+  await staff.close();
+  await expect(mine.getByText('Paid', { exact: true })).toBeVisible({ timeout: 10000 });
   await page.setViewportSize({ width: 360, height: 740 });
   await settle(page, 400);
-  await checkLayout(page, 'my applications @360');
-  await shot(page, 'my-applications-phone');
+  await checkLayout(page, 'your applications @360');
+  await shot(page, 'vendor-applications-phone');
   await v.ctx.close();
 });

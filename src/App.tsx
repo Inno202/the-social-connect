@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { ConfirmHost, Toasts, Spinner } from './components/ui';
 import Home from './pages/Home';
@@ -18,7 +18,6 @@ const Account = lazy(() => import('./pages/Account'));
 const Profile = lazy(() => import('./pages/Profile'));
 const MyTickets = lazy(() => import('./pages/MyTickets'));
 const Claim = lazy(() => import('./pages/Claim'));
-const MyApplications = lazy(() => import('./pages/MyApplications'));
 const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
 const Scanner = lazy(() => import('./pages/Scanner'));
 
@@ -56,7 +55,7 @@ export default function App() {
                     <Route path="/dashboard/*" element={<Dashboard />} />
                     <Route path="/gallery" element={<Gallery />} />
                     <Route path="/vendors" element={<Vendors />} />
-                    <Route path="/vendors/applications" element={<MyApplications />} />
+                    <Route path="/vendors/applications" element={<Navigate to="/vendors#my-applications" replace />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/privacy" element={<Privacy />} />
                     <Route path="/cookies" element={<Cookies />} />

@@ -319,7 +319,8 @@ service cloud.firestore {
     }
 
     // ---------- Vendor applications ----------
-    // Anyone may apply (no account needed). Event staff read and decide, and can leave a short note for the vendor.
+    // Anyone may apply (no account needed). Event staff read and decide, can leave a short note for the vendor,
+    // set a stall fee and mark it paid.
     // A vendor who applied while signed in can read their own applications (status and note), never change them.
     function validVendor(d) {
       return d.keys().hasOnly(['businessName', 'contactName', 'email', 'phone', 'category', 'description', 'events', 'anyEvent',
@@ -343,8 +344,12 @@ service cloud.firestore {
       allow create: if validVendor(request.resource.data);
       allow read: if eventStaff() || (signedIn() && resource.data.uid == request.auth.uid);
       allow update: if eventStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'response'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'response', 'fee', 'feePaid'])
         && (!('response' in request.resource.data) || str(request.resource.data.response, 0, 500))
+        // A stall fee in whole rands (none = null), and whether it has been paid (marked by staff; paid outside the site).
+        && (!('fee' in request.resource.data) || request.resource.data.fee == null
+            || (request.resource.data.fee is int && request.resource.data.fee >= 0 && request.resource.data.fee <= 1000000))
+        && (!('feePaid' in request.resource.data) || request.resource.data.feePaid is bool)
         && request.resource.data.status in ['new', 'approved', 'declined']
         && request.resource.data.reviewedBy == request.auth.uid
         && request.resource.data.reviewedAt == request.time;

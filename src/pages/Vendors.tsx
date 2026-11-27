@@ -10,6 +10,7 @@ import { useAuth } from '../lib/auth';
 import { filterEvents } from '../lib/eventState';
 import { shortDate } from '../lib/format';
 import { useTitle } from '../lib/useTitle';
+import { VendorApplications, useMyVendorApps } from '../components/VendorApplications';
 
 export const VENDOR_CATEGORIES = [
   ['food', 'Food'],
@@ -21,6 +22,7 @@ export const VENDOR_CATEGORIES = [
   ['services', 'Services (photos, DJ gear, other)'],
   ['other', 'Something else'],
 ] as const;
+const catLabel = (k: string) => VENDOR_CATEGORIES.find(([c]) => c === k)?.[1] ?? k;
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const PHONE = /^[0-9 +()-]{7,20}$/;
@@ -28,6 +30,8 @@ const PHONE = /^[0-9 +()-]{7,20}$/;
 export default function Vendors() {
   useTitle('Become a vendor');
   const { user, profile, ready } = useAuth();
+  const myApps = useMyVendorApps(user?.uid);
+  const [view, setView] = useState<'apply' | 'mine'>(() => (typeof window !== 'undefined' && window.location.hash === '#my-applications' ? 'mine' : 'apply'));
   const { events } = useEvents();
   const upcoming = useMemo(() => (events ? filterEvents(events, 'upcoming') : []), [events]);
   const [f, setF] = useState({ businessName: '', contactName: '', email: '', phone: '', category: '', description: '', link: '', website: '' });
@@ -102,10 +106,10 @@ export default function Vendors() {
             <h2 className="t-section mt-4">Application <span className="text-lime">sent</span></h2>
             <p className="mt-3 text-white/85 prose-w">
               Thank you. MSB Events will contact you about stall space, fees and set-up for the events you chose.
-              {user ? ' You can follow it under My applications.' : ''}
+              {user ? ' You can follow it and see the reply under Your applications on this page.' : ''}
             </p>
             <div className="even-row [--even-min:10rem] mt-6">
-              {user && <Link to="/vendors/applications" className="btn btn-accent">My applications <ArrowRight className="btn-arrow" aria-hidden /></Link>}
+              {user && <button type="button" className="btn btn-accent" onClick={() => { setSent(false); setView('mine'); window.scrollTo(0, 0); }}>Your applications <ArrowRight className="btn-arrow" aria-hidden /></button>}
               <Link to="/events" className={user ? 'btn btn-outline-light' : 'btn btn-accent'}>See upcoming events <ArrowRight className="btn-arrow" aria-hidden /></Link>
               <Link to="/" className="btn btn-outline-light">Back to home</Link>
             </div>
@@ -119,10 +123,16 @@ export default function Vendors() {
             {!firebaseReady && <p className="mt-6 panel p-5 text-ink-soft">Applications are not switched on on this copy of the site.</p>}
             {firebaseReady && ready && (
               user ? (
-                <p className="mt-6 panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <span className="text-ink-soft">You are signed in, so you can follow this application and see MSB Events’ reply.</span>
-                  <Link to="/vendors/applications" className="btn btn-outline shrink-0">My applications</Link>
-                </p>
+                myApps && myApps.length > 0 ? (
+                  <div role="group" aria-label="Vendor page" className="mt-6 even-row [--even-min:9rem]" data-chips>
+                    <button type="button" className="btn btn-chip" aria-pressed={view === 'apply'} onClick={() => setView('apply')}>Apply</button>
+                    <button type="button" className="btn btn-chip" aria-pressed={view === 'mine'} onClick={() => setView('mine')}>
+                      Your applications <span className="num">({myApps.length})</span>
+                    </button>
+                  </div>
+                ) : (
+                  <p className="mt-6 panel p-5 text-ink-soft">You are signed in, so you can follow this application and see MSB Events’ reply here.</p>
+                )
               ) : (
                 <p className="mt-6 panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <span className="text-ink-soft">Sign in first to follow your application and see MSB Events’ reply on the site. You can also apply without an account.</span>
@@ -130,6 +140,9 @@ export default function Vendors() {
                 </p>
               )
             )}
+            {view === 'mine' && myApps && myApps.length > 0 ? (
+              <div className="mt-8"><VendorApplications apps={myApps} catLabel={catLabel} /></div>
+            ) : (
             <form onSubmit={submit} noValidate className="mt-8 space-y-6">
               <section className="panel p-6 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start" aria-labelledby="v-about">
                 <h2 id="v-about" className="t-card sm:col-span-2">About you</h2>
@@ -228,6 +241,7 @@ export default function Vendors() {
                 {busy && <Spinner label="Sending your application" />} Send application
               </button>
             </form>
+            )}
           </>
         )}
       </div>
