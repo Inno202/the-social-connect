@@ -226,7 +226,17 @@ test('nav bar: Home, Events, Tickets, Gallery, About, Become a vendor; Sign in o
   await expect(p.getByRole('banner').getByRole('link', { name: 'Sign in' })).toBeVisible();
   await p.getByRole('button', { name: 'Open menu' }).click();
   await expect(p.locator('#mobile-nav').getByRole('link')).toHaveText(NAV);
+  await shot(p, 'menu-phone', false);
   await phone.close();
+  // Signed in on a phone: cart and profile are icons in the bar, not menu items.
+  const phone2 = await browser.newContext({ viewport: { width: 360, height: 740 } });
+  const p2 = await phone2.newPage();
+  await signInPage(p2, 'scanner@msb.test');
+  await p2.getByRole('button', { name: 'Open menu' }).click();
+  await expect(p2.locator('#mobile-nav').getByRole('link', { name: /Cart|Profile/ })).toHaveCount(0);
+  await expect(p2.getByRole('banner').getByRole('link', { name: 'Profile' })).toBeVisible();
+  await checkLayout(p2, 'menu signed in @360');
+  await phone2.close();
 });
 
 async function signInPage(page: import('@playwright/test').Page, email: string) {

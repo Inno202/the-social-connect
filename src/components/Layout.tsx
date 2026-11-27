@@ -30,8 +30,6 @@ export function Header() {
   useEffect(() => setOpen(false), [loc.pathname]);
   useBackClose(open, () => setOpen(false));
   const links = [...NAV, ...(can.dashboard(profile?.role) ? [{ to: '/dashboard', label: 'Dashboard' }] : [])];
-  // The phone menu also names what is an icon in the bar.
-  const mobileLinks = user ? [...links, { to: '/cart', label: count ? `Cart (${count})` : 'Cart' }, { to: '/profile', label: 'Profile' }] : links;
   const signInHref = `/account?next=${encodeURIComponent(loc.pathname.startsWith('/account') ? '/tickets' : loc.pathname)}`;
 
   return (
@@ -77,12 +75,28 @@ export function Header() {
         </div>
       </div>
       {open && (
-        <nav id="mobile-nav" aria-label="Main" className="xl:hidden border-t border-white/10 wrap pb-4">
-          {mobileLinks.map((n) => (
-            <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => `t-section flex items-center min-h-[56px] ${isActive ? 'text-lime' : 'text-white'}`}>
-              {n.label}
-            </NavLink>
-          ))}
+        <nav id="mobile-nav" aria-label="Main" className="xl:hidden border-t border-white/10">
+          {/* Cart and profile stay as icons in the bar, so the menu lists pages only. */}
+          <ul className="wrap py-2 divide-y divide-white/10">
+            {links.map((n) => (
+              <li key={n.to}>
+                <NavLink
+                  to={n.to}
+                  end={n.to === '/'}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between gap-3 min-h-[52px] text-sm font-semibold uppercase tracking-[0.16em] transition-colors ${isActive ? 'text-lime' : 'text-white/80 hover:text-white'}`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span>{n.label}</span>
+                      {isActive && <span className="size-1.5 rounded-full bg-lime" aria-hidden />}
+                    </>
+                  )}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
         </nav>
       )}
     </header>
