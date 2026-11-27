@@ -10,6 +10,7 @@ import { VENDOR_CATEGORIES } from '../Vendors';
 interface Application {
   id: string; businessName: string; contactName: string; email: string; phone: string; category: string; description: string;
   events: string[]; anyEvent: boolean; needsPower: boolean; link: string; status: 'new' | 'approved' | 'declined'; createdAt: Timestamp | null;
+  uid?: string | null; response?: string;
 }
 type Filter = 'all' | 'new' | 'approved' | 'declined';
 const LABEL: Record<Application['status'], string> = { new: 'New', approved: 'Approved', declined: 'Declined' };
@@ -20,6 +21,9 @@ export default function VendorsAdmin() {
   const [apps, setApps] = useState<Application[] | null>(null);
   const [filter, setFilter] = useState<Filter>('new');
   const [busy, setBusy] = useState<string | null>(null);
+  // Notes being typed, per application (falls back to the saved note).
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const noteOf = (a: Application) => notes[a.id] ?? a.response ?? '';
   const { events } = useEvents({ includeDrafts: true });
   useEffect(() => {
     if (!db) return;
@@ -35,15 +39,16 @@ export default function VendorsAdmin() {
     if (!db || !auth?.currentUser) return;
     setBusy(a.id + status);
     try {
-      await updateDoc(doc(db, 'vendorApplications', a.id), { status, reviewedBy: auth.currentUser.uid, reviewedAt: serverTimestamp() });
-      await logActivity(`Marked vendor ${status}`, a.businessName, a.id);
-      toast(`${a.businessName}: ${LABEL[status].toLowerCase()}.`);
+      await updateDoc(doc(db, 'vendorApplications', a.id), { status, reviewedBy: auth.currentUser.uid, reviewedAt: serverTimestamp(), response: noteOf(a).trim().slice(0, 500) });
+      await logActivity(status === a.status ? 'Messaged vendor' : `Marked vendor ${status}`, a.businessName, a.id);
+      setNotes((n) => { const c = { ...n }; delete c[a.id]; return c; });
+      toast(status === a.status ? 'Message saved. The vendor sees it on My applications.' : `${a.businessName}: ${LABEL[status].toLowerCase()}.`);
     } catch { toast('The application could not be updated.', 'error'); } finally { setBusy(null); }
   }
 
   function exportCsv() {
-    const head = ['Received', 'Status', 'Business', 'Contact', 'Phone', 'Email', 'Sells', 'Electricity', 'Events', 'About', 'Link'];
-    const rows = (apps ?? []).map((a) => [a.createdAt ? a.createdAt.toDate().toISOString() : '', a.status, a.businessName, a.contactName, a.phone, a.email, cat(a.category), a.needsPower ? 'Yes' : 'No', a.anyEvent ? 'Any upcoming event' : a.events.map(title).join('; '), a.description, a.link]);
+    const head = ['Received', 'Status', 'Business', 'Contact', 'Phone', 'Email', 'Sells', 'Electricity', 'Events', 'About', 'Link', 'Message to vendor'];
+    const rows = (apps ?? []).map((a) => [a.createdAt ? a.createdAt.toDate().toISOString() : '', a.status, a.businessName, a.contactName, a.phone, a.email, cat(a.category), a.needsPower ? 'Yes' : 'No', a.anyEvent ? 'Any upcoming event' : a.events.map(title).join('; '), a.description, a.link, a.response ?? '']);
     const csv = [head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n');
     const url = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
     const el = document.createElement('a');
@@ -86,6 +91,18 @@ export default function VendorsAdmin() {
               <div className="min-w-0"><dt className="text-ink-soft">Events</dt><dd className="font-semibold break-any">{a.anyEvent ? 'Any upcoming event' : a.events.map(title).join(', ')}</dd></div>
               {a.link && <div className="min-w-0 sm:col-span-2"><dt className="text-ink-soft">Link</dt><dd><a className="link break-any" href={a.link} target="_blank" rel="noopener noreferrer">{a.link}</a></dd></div>}
             </dl>
+            {a.uid ? (
+              <div className="min-w-0">
+                <label htmlFor={`note-${a.id}`} className="field-label">Message to the vendor (optional)</label>
+                <textarea id={`note-${a.id}`} rows={2} maxLength={500} className="field" placeholder="For example: stall 12, set-up from 10:00" value={noteOf(a)} onChange={(e) => setNotes((n) => ({ ...n, [a.id]: e.target.value }))} aria-describedby={`note-${a.id}-hint`} />
+                <p id={`note-${a.id}-hint`} className="mt-1 text-sm text-ink-soft">Shown on their My applications page with the status. Saved when you approve, decline or press Save message.</p>
+                {a.status !== 'new' && noteOf(a) !== (a.response ?? '') && (
+                  <button type="button" className="btn btn-outline mt-2" disabled={!!busy} onClick={() => decide(a, a.status)}>{busy === a.id + a.status && <Spinner label="Saving" />} Save message</button>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-ink-soft">Applied without an account: let them know by phone or email.</p>
+            )}
             <div className="even-cols pt-1">
               {a.status !== 'approved' && <button type="button" className="btn btn-primary" disabled={!!busy} onClick={() => decide(a, 'approved')}>{busy === a.id + 'approved' && <Spinner label="Saving" />} Approve</button>}
               {a.status !== 'declined' && <button type="button" className="btn btn-outline" disabled={!!busy} onClick={() => decide(a, 'declined')}>{busy === a.id + 'declined' && <Spinner label="Saving" />} Decline</button>}

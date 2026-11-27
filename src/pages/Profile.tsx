@@ -83,7 +83,7 @@ export default function Profile() {
     <>
       <PageHero title="Your profile" photo="/photos/festival-crowd-denim" position="center 40%" />
       <div className="wrap max-w-2xl py-12 md:py-16">
-        <p className="mb-6 text-ink-soft">Your tickets are on the <Link to="/tickets" className="link">Tickets</Link> page.</p>
+        <p className="mb-6 text-ink-soft">Your tickets are on the <Link to="/tickets" className="link">Tickets</Link> page. Vendor applications you sent while signed in are under <Link to="/vendors/applications" className="link">My applications</Link>.</p>
         <AccountPanel />
       </div>
     </>

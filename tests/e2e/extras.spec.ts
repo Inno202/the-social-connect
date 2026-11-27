@@ -147,3 +147,44 @@ test('a busy checkout shows the waiting room instead of an error, and the buyer 
   await expect(a.page.getByText(/You left the line/).first()).toBeVisible();
   await a.ctx.close();
 });
+
+test('a signed-in vendor follows their application and reads the reply from MSB Events', async ({ browser }) => {
+  const v = await signUp(browser, { name: 'Lindi Vendor', email: `vendor${stamp}@msb.test`, password: 'blow-2026-test' }, '/vendors');
+  const page = v.page;
+  await expect(page.getByText(/You are signed in, so you can follow this application/)).toBeVisible();
+  await page.getByLabel('Business or stall name').fill(`Lindi's Kota ${stamp}`);
+  await page.getByLabel('Phone').fill('082 000 0000');
+  await page.getByLabel('What you sell').selectOption('food');
+  await page.getByLabel('Tell us about it').fill('Kotas and cold drinks, two people, own gazebo.');
+  await page.getByRole('radio', { name: 'No' }).click();
+  await page.getByLabel(/MSB Test Night/).check();
+  await page.getByLabel(/MSB Events may keep these details/).check();
+  await page.getByRole('button', { name: 'Send application' }).click();
+  await expect(page.getByRole('heading', { name: /Application sent/ })).toBeVisible();
+  await page.getByRole('link', { name: /My applications/ }).first().click();
+  await page.waitForURL('**/vendors/applications');
+  await expect(page.getByText('Received')).toBeVisible();
+
+  const staff = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const sp = await staff.newPage();
+  await signIn(sp, 'manager@msb.test', undefined, '/dashboard/vendors');
+  await sp.goto('/dashboard/vendors');
+  const card = sp.locator('li', { hasText: `Lindi's Kota ${stamp}` });
+  await card.getByLabel('Message to the vendor (optional)').fill('Stall 12, set-up from 10:00. Bring your own gas.');
+  await card.getByRole('button', { name: 'Approve' }).click();
+  await expect(sp.getByText(/approved\./)).toBeVisible();
+  await checkLayout(sp, 'vendors admin with message @1280');
+  await staff.close();
+
+  await page.reload();
+  await settle(page, 1200);
+  await expect(page.getByText('Approved')).toBeVisible();
+  await expect(page.getByText('Stall 12, set-up from 10:00. Bring your own gas.')).toBeVisible();
+  await checkLayout(page, 'my applications @1280');
+  await checkA11y(page, 'my applications');
+  await page.setViewportSize({ width: 360, height: 740 });
+  await settle(page, 400);
+  await checkLayout(page, 'my applications @360');
+  await shot(page, 'my-applications-phone');
+  await v.ctx.close();
+});

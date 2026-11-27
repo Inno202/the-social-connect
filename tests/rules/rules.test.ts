@@ -304,6 +304,25 @@ describe('vendor applications', () => {
     await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp(), businessName: 'X' }));
     await assertSucceeds(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp() }));
   });
+  it('a signed-in vendor sees their own applications and the response, and cannot change them', async () => {
+    const mine = await addDoc(collection(as('alice'), 'vendorApplications'), app({ uid: 'alice' }));
+    await addDoc(collection(as('bob'), 'vendorApplications'), app({ uid: 'bob' }));
+    await assertSucceeds(getDoc(doc(as('alice'), 'vendorApplications', mine.id)));
+    await assertFails(getDoc(doc(as('bob'), 'vendorApplications', mine.id)));
+    const own = await assertSucceeds(getDocs(query(collection(as('alice'), 'vendorApplications'), where('uid', '==', 'alice'))));
+    expect(own.size).toBe(1);
+    await assertFails(getDocs(collection(as('alice'), 'vendorApplications')));
+    await assertFails(getDocs(query(collection(as('alice'), 'vendorApplications'), where('uid', '==', 'bob'))));
+    await assertFails(updateDoc(doc(as('alice'), 'vendorApplications', mine.id), { status: 'approved' }));
+    await assertFails(updateDoc(doc(as('alice'), 'vendorApplications', mine.id), { response: 'Approved, stall 1' }));
+  });
+  it('staff can leave a short note for the vendor', async () => {
+    const ref = await addDoc(collection(as('alice'), 'vendorApplications'), app({ uid: 'alice' }));
+    await assertSucceeds(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp(), response: 'Stall 12, set-up from 10:00.' }));
+    await assertFails(updateDoc(doc(as('manager'), 'vendorApplications', ref.id), { status: 'approved', reviewedBy: 'manager', reviewedAt: serverTimestamp(), response: 'x'.repeat(501) }));
+    const snap = await getDoc(doc(as('alice'), 'vendorApplications', ref.id));
+    expect(snap.data()?.response).toBe('Stall 12, set-up from 10:00.');
+  });
 });
 
 

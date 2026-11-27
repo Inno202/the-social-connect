@@ -319,7 +319,8 @@ service cloud.firestore {
     }
 
     // ---------- Vendor applications ----------
-    // Anyone may apply (no account needed); only event staff can read or decide.
+    // Anyone may apply (no account needed). Event staff read and decide, and can leave a short note for the vendor.
+    // A vendor who applied while signed in can read their own applications (status and note), never change them.
     function validVendor(d) {
       return d.keys().hasOnly(['businessName', 'contactName', 'email', 'phone', 'category', 'description', 'events', 'anyEvent',
           'needsPower', 'link', 'consent', 'status', 'createdAt', 'uid'])
@@ -340,9 +341,10 @@ service cloud.firestore {
 
     match /vendorApplications/{id} {
       allow create: if validVendor(request.resource.data);
-      allow read: if eventStaff();
+      allow read: if eventStaff() || (signedIn() && resource.data.uid == request.auth.uid);
       allow update: if eventStaff()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewedBy', 'reviewedAt', 'response'])
+        && (!('response' in request.resource.data) || str(request.resource.data.response, 0, 500))
         && request.resource.data.status in ['new', 'approved', 'declined']
         && request.resource.data.reviewedBy == request.auth.uid
         && request.resource.data.reviewedAt == request.time;

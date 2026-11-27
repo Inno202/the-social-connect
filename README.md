@@ -20,6 +20,7 @@ Built in the Bokamoso style: React, Vite, Tailwind 4 and TypeScript, with Fireba
 | Event page: poster, title card with countdown, date and venue card, Buy button (or "Buy on Computicket", or "Notify me" when tickets are coming soon), Add to calendar, Directions, WhatsApp and Share, Info / Line up / Venue tabs | `src/pages/EventPage.tsx`, `src/components/EventActions.tsx`, `NotifyMe.tsx`, `Countdown.tsx` |
 | Tickets step (releases, VIP tables, free tickets, sold out / coming soon, gate price, promo code row switched off), cart, checkout (Tickets → Details → Pay → Success) | `src/pages/Tickets.tsx`, `Cart.tsx`, `Checkout.tsx`, `src/lib/checkout.ts` |
 | My tickets with QR codes, PDF download and "Send to a friend" (one-time transfer link, claimed at `/claim/<code>`); profile (name, password, delete) | `src/pages/MyTickets.tsx`, `Claim.tsx`, `Profile.tsx`, `src/lib/transfer.ts`, `src/lib/pdf.ts` |
+| Vendor applications (with or without an account) and My applications for signed-in vendors: status and staff message | `src/pages/Vendors.tsx`, `src/pages/MyApplications.tsx`, `src/pages/dashboard/VendorsAdmin.tsx` |
 | Busy-sale waiting room: checkout retries automatically behind a "You are in the line" screen | `src/lib/queue.ts`, `src/components/WaitingRoom.tsx` |
 | Search and sharing: per-page head tags, schema.org Event data, sitemap.xml, robots.txt | `src/lib/seo.ts`, `scripts/prerender.mjs` |
 | Gallery with full-screen viewer | `src/pages/Gallery.tsx`, `src/components/PhotoViewer.tsx` |

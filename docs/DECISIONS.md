@@ -119,3 +119,9 @@ The Bokamoso rules applied across the whole site. Everything shared is in `src/i
   `X-Powered-By` (the security headers are already in `firebase.json`); on nginx use `server_tokens off;` (and
   `more_clear_headers Server;` with the headers-more module); on Apache use `ServerTokens Prod`, `ServerSignature Off`
   and `Header unset X-Powered-By`; on Express use `app.disable('x-powered-by')`.
+- **Vendors follow their applications.** A vendor who applies while signed in can open My applications
+  (`/vendors/applications`, also linked from Profile and the vendor page) to see each application's status (Received,
+  Approved, Not this time) and an optional message from staff (up to 500 characters, written in Dashboard → Vendors).
+  The rules let a vendor read only applications carrying their own account id and never change them; only event staff
+  write the status and message. Applications sent without an account are not linked to anyone and do not show there;
+  staff are reminded to reply to those by phone or email. No email is sent.

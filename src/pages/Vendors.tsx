@@ -27,7 +27,7 @@ const PHONE = /^[0-9 +()-]{7,20}$/;
 
 export default function Vendors() {
   useTitle('Become a vendor');
-  const { user, profile } = useAuth();
+  const { user, profile, ready } = useAuth();
   const { events } = useEvents();
   const upcoming = useMemo(() => (events ? filterEvents(events, 'upcoming') : []), [events]);
   const [f, setF] = useState({ businessName: '', contactName: '', email: '', phone: '', category: '', description: '', link: '', website: '' });
@@ -100,9 +100,13 @@ export default function Vendors() {
           <div className="band p-8 sm:p-10 ticket-in" role="status">
             <CheckCircle2 className="size-10 text-lime" aria-hidden />
             <h2 className="t-section mt-4">Application <span className="text-lime">sent</span></h2>
-            <p className="mt-3 text-white/85 prose-w">Thank you. MSB Events will contact you about stall space, fees and set-up for the events you chose.</p>
+            <p className="mt-3 text-white/85 prose-w">
+              Thank you. MSB Events will contact you about stall space, fees and set-up for the events you chose.
+              {user ? ' You can follow it under My applications.' : ''}
+            </p>
             <div className="even-row [--even-min:10rem] mt-6">
-              <Link to="/events" className="btn btn-accent">See upcoming events <ArrowRight className="btn-arrow" aria-hidden /></Link>
+              {user && <Link to="/vendors/applications" className="btn btn-accent">My applications <ArrowRight className="btn-arrow" aria-hidden /></Link>}
+              <Link to="/events" className={user ? 'btn btn-outline-light' : 'btn btn-accent'}>See upcoming events <ArrowRight className="btn-arrow" aria-hidden /></Link>
               <Link to="/" className="btn btn-outline-light">Back to home</Link>
             </div>
           </div>
@@ -113,6 +117,19 @@ export default function Vendors() {
               will contact you about space, fees and set-up.
             </p>
             {!firebaseReady && <p className="mt-6 panel p-5 text-ink-soft">Applications are not switched on on this copy of the site.</p>}
+            {firebaseReady && ready && (
+              user ? (
+                <p className="mt-6 panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-ink-soft">You are signed in, so you can follow this application and see MSB Events’ reply.</span>
+                  <Link to="/vendors/applications" className="btn btn-outline shrink-0">My applications</Link>
+                </p>
+              ) : (
+                <p className="mt-6 panel p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-ink-soft">Sign in first to follow your application and see MSB Events’ reply on the site. You can also apply without an account.</span>
+                  <Link to="/account?next=/vendors" className="btn btn-primary shrink-0">Sign in</Link>
+                </p>
+              )
+            )}
             <form onSubmit={submit} noValidate className="mt-8 space-y-6">
               <section className="panel p-6 grid grid-cols-1 sm:grid-cols-2 gap-5 items-start" aria-labelledby="v-about">
                 <h2 id="v-about" className="t-card sm:col-span-2">About you</h2>
